@@ -5,6 +5,7 @@ import PopularPlaces from './components/HomeComponents/PopularPlaces/PopularPlac
 import GetTheApp from './components/HomeComponents/GetTheApp/GetTheApp'
 import ExploreOptionsNearMe from './components/HomeComponents/ExploreOptionsNearMe/ExploreOptionsNearMe'
 import Footer from './components/Footer/Footer'
+import Header from './components/Header/Header'
 
 import house1 from '/images/house1.jpg'
 import house2 from '/images/house2.jpg'
@@ -14,14 +15,18 @@ import house5 from '/images/house5.jpg'
 import house6 from '/images/house6.jpg'
 import house7 from '/images/house7.jpg'
 import house8 from '/images/house8.jpg'
-
+import man from '../src/utils/Cards/Agent/images/businessman.jpg'
+import logo from './components/HomeComponents/LatestNews/images/logo.png'
 import css from './App.module.css'
+import LatestNews from './components/HomeComponents/LatestNews/LatestNews'
 
 import { orderOnlinePage, diningOutPage, proAndProPlusPage, nightLifePage } from './helpers/constants';
+import Agent from './utils/Cards/Agent/Agent'
 
 function App() {
 
   return <>
+   
     <HomePageBanner />
     <div className={css.bodySize}>
       <div className={css.chooseTypeCards}>
@@ -34,13 +39,18 @@ function App() {
         <SmallCard imgSrc={house7} text="Night Life and Clubs" link={'/show-case?page=' + nightLifePage} />
         <SmallCard imgSrc={house8} text="Night Life and Clubs" link={'/show-case?page=' + nightLifePage} /> 
       </div>
-      <Collections />
-      <PopularPlaces />
+      {/* <Collections />
+      <PopularPlaces /> */}
+      <Agent imgSrc={man} text="Edward Hope" email="mugn@gmail.com"/>
+      <div className={css.latestNewsCards}>
+        <LatestNews imgSrc={house1} text="Order Online" link={"/show-case?page=" + orderOnlinePage}/>
+        <LatestNews imgSrc={house2} text="Order Online" link={"/show-case?page=" + orderOnlinePage}/>
+      </div>
     </div>
     <GetTheApp />
-    <ExploreOptionsNearMe />
+    {/* <ExploreOptionsNearMe /> */}
     <Footer />
   </>
 }
 
-export default App
+export default App;

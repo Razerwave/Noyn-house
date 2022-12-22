@@ -1,0 +1,12 @@
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.agent-content .image img {
+   height: 300px;
+   width: 300px;
+   border-radius: 50%;
+} 
