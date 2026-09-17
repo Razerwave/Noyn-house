@@ -1,0 +1,2 @@
+import { PageHero } from "@/components/page-hero";import { services } from "@/lib/data";
+export const metadata={title:"Үйлчилгээ"};export default function Services(){return <><PageHero eyebrow="Нэг цэгийн үйлчилгээ" title="Үйлчилгээ" copy="Анхны зөвлөгөөнөөс түлхүүр гардуулах хүртэл төслийн бүх үе шатыг нэг баг удирдана."/><section className="section"><div className="container service-grid">{services.map(([title,copy],i)=><article className="service-card" key={title}><span>{String(i+1).padStart(2,'0')}</span><h3>{title}</h3><p>{copy}</p></article>)}</div></section></>}

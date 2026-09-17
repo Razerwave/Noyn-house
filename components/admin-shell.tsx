@@ -1,0 +1,3 @@
+import Link from "next/link";import { Logo } from "./logo";
+const nav=[["/admin","Хянах самбар"],["/admin/enquiries","Үнийн хүсэлтүүд"],["/admin/houses","Хаусын загвар"],["/admin/projects","Хийсэн төслүүд"],["/admin/content","Контент удирдлага"],["/admin/settings","Тохиргоо"]];
+export function AdminShell({children}:{children:React.ReactNode}){return <div className="admin-shell"><aside className="admin-side"><Logo inverse/><nav>{nav.map(([href,label])=><Link href={href} key={href}>{label}</Link>)}<Link href="/">← Сайт руу буцах</Link></nav></aside><main className="admin-main">{children}</main></div>}
