@@ -1,3 +1,22 @@
 import { AdminShell } from "@/components/admin-shell";
-const sections=[["Үйлчилгээ","6 нийтэлсэн үйлчилгээ"],["Барилгын технологи","12 агуулгын хэсэг"],["Ажлын дараалал","9 үе шат"],["Мэдээ, зөвлөгөө","3 нийтлэл, 1 ноорог"],["Түгээмэл асуулт","8 асуулт"],["Медиа сан","24 зураг, 3 PDF"],["Багийн гишүүд","Мэдээлэл оруулаагүй"]];
-export default function Content(){return <div className="admin-body"><AdminShell><div className="admin-top"><div><h1>Контент удирдлага</h1><small>Сайтын бүх агуулгыг нэг дороос шинэчлэх</small></div></div><div className="service-grid">{sections.map(([t,c],i)=><article className="service-card" key={t}><span>{String(i+1).padStart(2,'0')}</span><h3>{t}</h3><p>{c}</p><button className="text-link" style={{border:0,background:'none'}}>Удирдах →</button></article>)}</div></AdminShell></div>}
+import Link from "next/link";
+
+const sections = [
+  { title: "Үйлчилгээ", count: "6 нийтэлсэн үйлчилгээ" },
+  { title: "Барилгын технологи", count: "12 агуулгын хэсэг" },
+  { title: "Ажлын дараалал", count: "Хуудасны гарчиг болон үе шатууд", href: "/admin/content/process" },
+  { title: "Мэдээ, зөвлөгөө", count: "3 нийтлэл, 1 ноорог" },
+  { title: "Түгээмэл асуулт", count: "8 асуулт" },
+  { title: "Медиа сан", count: "24 зураг, 3 PDF" },
+  { title: "Багийн гишүүд", count: "Мэдээлэл оруулаагүй" },
+];
+
+export default function Content() {
+  return <div className="admin-body"><AdminShell>
+    <div className="admin-top"><div><h1>Контент удирдлага</h1><small>Сайтын бүх агуулгыг нэг дороос шинэчлэх</small></div></div>
+    <div className="service-grid">{sections.map((section, index) => <article className="service-card" key={section.title}>
+      <span>{String(index + 1).padStart(2, "0")}</span><h3>{section.title}</h3><p>{section.count}</p>
+      {section.href ? <Link className="text-link" href={section.href}>Удирдах →</Link> : <span className="field-help">Удахгүй</span>}
+    </article>)}</div>
+  </AdminShell></div>;
+}

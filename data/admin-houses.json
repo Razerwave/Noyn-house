@@ -1,0 +1,21 @@
+[
+  {
+    "id": "cbd071a3-6997-4fb7-b1e3-35581f37b500",
+    "name": "Canada house",
+    "slug": "canada-house-zagwar",
+    "category": "2 давхар",
+    "image": "/uploads/houses/canada-house-zagwar/7c480cdf-266a-41d2-a7f9-d31e1c89b74a.jpg",
+    "images": [
+      "/uploads/houses/canada-house-zagwar/f36ebd74-2fcf-4080-9ca8-3b7b2ee3565f.jpg",
+      "/uploads/houses/canada-house-zagwar/0482751a-9afb-4b23-9f2d-243db68c42b8.jpg",
+      "/uploads/houses/canada-house-zagwar/0b9e2133-81d0-4262-b0e3-46eaf1413785.jpg"
+    ],
+    "area": "72 м²",
+    "floors": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "dimensions": "",
+    "description": "Канада хаус",
+    "status": "published"
+  }
+]

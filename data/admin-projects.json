@@ -1,0 +1,54 @@
+[
+  {
+    "id": "3526757a-7263-4ee4-b905-ceeafe9d0d42",
+    "title": "Канад хаус 2",
+    "slug": "kanad-khaus-2",
+    "location": "Сонгино Хотхонд",
+    "area": "72 м²",
+    "year": "1986",
+    "duration": "2сар",
+    "image": "/uploads/projects/kanad-khaus-2/f4f465b1-d81e-4e2e-afc7-ee5e3a179faa.jpg",
+    "images": [
+      "/uploads/projects/kanad-khaus-2/5936514d-d587-4b02-acde-c231d9c64bf2.jpg",
+      "/uploads/projects/kanad-khaus-2/de8ba7b9-c4a8-4ecd-99a7-abb7f8f5b966.jpg",
+      "/uploads/projects/kanad-khaus-2/9ec66a80-dc1e-454f-9477-e5fd88009f73.jpg"
+    ],
+    "overview": "Канад хаус",
+    "status": "published"
+  },
+  {
+    "id": "64a81d33-113d-4b22-b993-71a3efdd06e6",
+    "title": "Канад хаус",
+    "slug": "canada-house",
+    "location": "Сонгино Хотхон",
+    "area": "50 м²",
+    "year": "2024",
+    "duration": "1сар",
+    "image": "/uploads/projects/canada-house/ca2c07b4-d4ad-4ef6-91c8-be569e6d312f.jpg",
+    "images": [
+      "/uploads/projects/canada-house/7b3c43c4-9a48-4cf2-8173-855f1834d414.jpg",
+      "/uploads/projects/canada-house/ba19ebe8-b5f1-4806-9431-3bfdf0e186c1.jpg",
+      "/uploads/projects/canada-house/9efd6570-0681-46dd-870a-a5b4aad582c1.jpg"
+    ],
+    "overview": "Канад хаус",
+    "status": "published"
+  },
+  {
+    "id": "90468039-8d93-47a4-bab6-a7ee603aec28",
+    "title": "Дүнз",
+    "slug": "dunz",
+    "location": "Сонгино Хотхонд",
+    "area": "63 м²",
+    "year": "2024",
+    "duration": "1сар",
+    "image": "/uploads/projects/dunz/a1a5fb83-4350-41d9-9540-00b86a194089.jpg",
+    "images": [
+      "/uploads/projects/dunz/2a7caf93-7c3f-4dbd-86d4-01e3b2a41c4f.jpg",
+      "/uploads/projects/dunz/e7bc5d94-6a2b-4c12-a6ab-9264c5227495.jpg",
+      "/uploads/projects/dunz/eb09ca64-dc6a-44b8-8266-6c742356c139.jpg",
+      "/uploads/projects/dunz/d6a5d17e-4079-40eb-96ae-7a350e65f120.jpg"
+    ],
+    "overview": "Сонгино хотхон",
+    "status": "published"
+  }
+]

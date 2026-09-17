@@ -26,7 +26,7 @@ create table public.media_files (id uuid primary key default gen_random_uuid(), 
 create table public.website_settings (key text primary key, value jsonb not null, updated_by uuid references public.profiles, updated_at timestamptz default now());
 create table public.activity_logs (id uuid primary key default gen_random_uuid(), actor_id uuid references public.profiles, action text not null, entity_type text, entity_id uuid, before_data jsonb, after_data jsonb, ip inet, created_at timestamptz default now());
 
-alter table public.quotation_enquiries enable row level security;alter table public.house_models enable row level security;alter table public.projects enable row level security;alter table public.articles enable row level security;
+alter table public.quotation_enquiries enable row level security;alter table public.house_models enable row level security;alter table public.projects enable row level security;alter table public.articles enable row level security;alter table public.process_steps enable row level security;alter table public.website_settings enable row level security;
 create or replace function public.has_role(allowed_roles text[]) returns boolean language sql security definer set search_path=public stable as $$ select exists(select 1 from public.profiles p join public.roles r on r.id=p.role_id where p.id=auth.uid() and r.name=any(allowed_roles)); $$;
 revoke all on function public.has_role(text[]) from public;grant execute on function public.has_role(text[]) to authenticated;
 create policy "published models are public" on public.house_models for select using(status='published' and deleted_at is null);
@@ -36,4 +36,23 @@ create policy "sales manage enquiries" on public.quotation_enquiries for all to 
 create policy "editors manage models" on public.house_models for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
 create policy "editors manage projects" on public.projects for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
 create policy "editors manage articles" on public.articles for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
+create policy "published process steps are public" on public.process_steps for select using(status='published');
+create policy "process page setting is public" on public.website_settings for select using(key='process_page');
+create policy "editors manage process steps" on public.process_steps for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
+create policy "editors manage website settings" on public.website_settings for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
 -- Public quotation inserts use the server-only service role after Zod validation and rate limiting.
+
+-- Project images are uploaded only by the authenticated admin API using the service role.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('project-images', 'project-images', true, 10485760, array['image/jpeg','image/png','image/webp','image/avif'])
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('house-images', 'house-images', true, 10485760, array['image/jpeg','image/png','image/webp','image/avif'])
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;

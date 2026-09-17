@@ -1,0 +1,62 @@
+.steps {
+  display: grid;
+  gap: 12px;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid #e4e6e7;
+  background: #fafbfb;
+}
+
+.stepNumber {
+  color: var(--red);
+  font-family: var(--serif);
+  font-size: 30px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: .7fr 1.3fr;
+  gap: 16px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.actions button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #d7dadd;
+  background: #fff;
+  color: #344047;
+}
+
+.actions button:hover:not(:disabled) {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.actions button:disabled {
+  cursor: not-allowed;
+  opacity: .35;
+}
+
+@media (max-width: 900px) {
+  .step { grid-template-columns: 45px 1fr; }
+  .fields { grid-template-columns: 1fr; }
+  .actions { grid-column: 2; flex-direction: row; }
+}
+
+@media (max-width: 560px) {
+  .step { grid-template-columns: 1fr; }
+  .fields, .actions { grid-column: 1; }
+}

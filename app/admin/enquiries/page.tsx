@@ -1,3 +1,65 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { redirect } from "next/navigation";
+import { AdminEnquiryList, type AdminEnquiry } from "@/components/admin-enquiry-list";
 import { AdminShell } from "@/components/admin-shell";
-const data=[["NH-2026-183204","Б. Тэмүүлэн","9911 2233","NOMAD 96","Хан-Уул","Тодорхойгүй","Б. Анужин","Шинэ"],["NH-2026-182911","О. Саруул","8812 4567","KHAAN 180","Налайх","Төсөв ярилцах","Г. Төгөлдөр","Холбогдсон"],["NH-2026-174305","Э. Мөнх","9512 6677","TAIGA 128","Төв аймаг","Тодорхойгүй","Б. Анужин","Уулзалт товлосон"]];
-export default function Enquiries(){return <div className="admin-body"><AdminShell><div className="admin-top"><div><h1>Үнийн хүсэлтүүд</h1><small>Харилцагчийн хүсэлт, дахин холболтыг удирдах</small></div><button className="button">CSV татах</button></div><div className="admin-card"><div className="filter-bar"><input placeholder="Нэр, утас, дугаараар хайх"/><select><option>Бүх төлөв</option><option>Шинэ</option><option>Холбогдсон</option><option>Үнийн санал илгээсэн</option></select><select><option>Бүх ажилтан</option></select></div><table className="admin-table"><thead><tr><th>Дугаар</th><th>Нэр</th><th>Утас</th><th>Загвар</th><th>Байршил</th><th>Төсөв</th><th>Хариуцагч</th><th>Төлөв</th></tr></thead><tbody>{data.map(r=><tr key={r[0]}>{r.map((x,i)=><td key={x}>{i===7?<span className="status">{x}</span>:x}</td>)}</tr>)}</tbody></table></div></AdminShell></div>}
+import { getAdminContext } from "@/lib/admin-auth";
+
+export const dynamic = "force-dynamic";
+
+type StoredEnquiry = {
+  enquiry_number?: string;
+  customer_name?: string;
+  phone?: string;
+  email?: string | null;
+  location?: string;
+  interested_model?: string | null;
+  budget?: string | null;
+  status?: string;
+  consent_at?: string;
+  created_at?: string;
+  form_data?: Record<string, unknown>;
+};
+
+function normalize(row: StoredEnquiry): AdminEnquiry {
+  const formData = Object.fromEntries(Object.entries(row.form_data ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+  return {
+    enquiryNumber: row.enquiry_number ?? "—",
+    customerName: row.customer_name ?? "—",
+    phone: row.phone ?? "—",
+    email: row.email ?? "",
+    location: row.location ?? "—",
+    model: row.interested_model ?? formData.model ?? "",
+    budget: row.budget ?? formData.budget ?? "",
+    status: row.status ?? "Шинэ",
+    createdAt: row.created_at ?? row.consent_at ?? "",
+    formData,
+  };
+}
+
+async function readLocalEnquiries() {
+  try {
+    const content = await readFile(path.join(process.cwd(), "data", "enquiries.ndjson"), "utf8");
+    return content.split("\n").filter(Boolean).flatMap(line => {
+      try { return [normalize(JSON.parse(line) as StoredEnquiry)]; } catch { return []; }
+    }).reverse();
+  } catch {
+    return [];
+  }
+}
+
+export default async function Enquiries() {
+  const context = await getAdminContext(["Admin", "Sales"]);
+  if (!context) redirect("/admin/login");
+
+  let enquiries: AdminEnquiry[];
+  if (context.mode === "local") {
+    enquiries = await readLocalEnquiries();
+  } else {
+    const { data, error } = await context.db.from("quotation_enquiries").select("*").is("deleted_at", null).order("created_at", { ascending: false });
+    if (error) throw new Error(`Үнийн хүсэлтүүдийг уншиж чадсангүй: ${error.message}`);
+    enquiries = (data ?? []).map(row => normalize(row as StoredEnquiry));
+  }
+
+  return <div className="admin-body"><AdminShell><AdminEnquiryList enquiries={enquiries} /></AdminShell></div>;
+}

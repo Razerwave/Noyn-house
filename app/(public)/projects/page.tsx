@@ -1,3 +1,35 @@
-import Image from "next/image";import Link from "next/link";import { ArrowRight } from "lucide-react";import { PageHero } from "@/components/page-hero";import { projects } from "@/lib/data";
-export const metadata={title:"Хийсэн төслүүд"};
-export default function Projects(){return <><PageHero eyebrow="Бидний туршлага" title="Хийсэн төслүүд" copy="Хэрэглэгчийн нууцлалыг хүндэтгэн ерөнхий байршил, төлөвлөлт, гүйцэтгэлийн шийдлээр танилцуулж байна."/><section className="section soft"><div className="container"><div className="filter-bar"><select><option>Байршил</option></select><select><option>Нийт талбай</option></select><select><option>Дууссан он</option></select><select><option>Төслийн төлөв</option></select></div><div className="cards">{projects.map(p=><Link className="card" href={`/projects/${p.slug}`} key={p.slug}><div className="card-image"><Image src={p.image} alt={p.title} fill sizes="33vw"/><span className="badge">{p.status}</span></div><div className="card-body"><h3>{p.title}</h3><p>{p.location} · {p.area} · {p.year}</p><span className="text-link">Дэлгэрэнгүй <ArrowRight size={15}/></span></div></Link>)}</div></div></section></>}
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { PageHero } from "@/components/page-hero";
+import { getPublishedProjects } from "@/lib/public-projects";
+
+export const metadata = { title: "Хийсэн төслүүд" };
+export const dynamic = "force-dynamic";
+
+export default async function Projects() {
+  const projects = await getPublishedProjects();
+
+  return <>
+    <PageHero eyebrow="Бидний туршлага" title="Хийсэн төслүүд" copy="Хэрэглэгчийн нууцлалыг хүндэтгэн ерөнхий байршил, төлөвлөлт, гүйцэтгэлийн шийдлээр танилцуулж байна." />
+    <section className="section soft">
+      <div className="container">
+        {projects.length > 0 ? <div className="cards">
+          {projects.map(project => <Link className="card" href={`/projects/${project.slug}`} key={project.id ?? project.slug}>
+            <div className="card-image">
+              <img src={project.image} alt={project.title} />
+              <span className="badge">Дууссан</span>
+            </div>
+            <div className="card-body">
+              <h3>{project.title}</h3>
+              <p>{project.location} · {project.area} · {project.year}</p>
+              <span className="text-link">Дэлгэрэнгүй <ArrowRight size={15} /></span>
+            </div>
+          </Link>)}
+        </div> : <div className="empty-state">
+          <h2>Нийтэлсэн төсөл одоогоор алга</h2>
+          <p>Админ хэсгээс төслийн төлөвийг “Нийтлэх” гэж сонгоход энд харагдана.</p>
+        </div>}
+      </div>
+    </section>
+  </>;
+}

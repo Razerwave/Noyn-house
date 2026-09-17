@@ -1,42 +1,232 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { getAdminContext } from "@/lib/admin-auth";
 import { readLocalRecords, writeLocalRecords } from "@/lib/local-admin-store";
+
+const PROJECT_IMAGE_BUCKET = "project-images";
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_GALLERY_IMAGES = 12;
+const IMAGE_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/avif": "avif",
+};
 
 const projectSchema = z.object({
   title: z.string().min(2).max(160), slug: z.string().min(2).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   location: z.string().min(2).max(180), totalArea: z.coerce.number().positive().max(10000),
   year: z.coerce.number().int().min(1900).max(2200), duration: z.string().max(100).optional().default(""),
-  houseModelId: z.string().uuid().optional().or(z.literal("")), image: z.string().min(1).max(500),
+  houseModelId: z.string().uuid().optional().or(z.literal("")),
   overview: z.string().min(10).max(3000), status: z.enum(["draft", "published"]),
 });
+
+function imageValidationError(coverImage: FormDataEntryValue | null, galleryImages: File[], requireCover = true) {
+  const coverFile = coverImage instanceof File && coverImage.size > 0 ? coverImage : null;
+  if (requireCover && !coverFile) return "Ковер зураг сонгоно уу.";
+  if (galleryImages.length > MAX_GALLERY_IMAGES) return `Gallery-д ${MAX_GALLERY_IMAGES}-с олон зураг оруулах боломжгүй.`;
+  for (const file of [...(coverFile ? [coverFile] : []), ...galleryImages]) {
+    if (!IMAGE_EXTENSIONS[file.type]) return `${file.name}: JPG, PNG, WebP эсвэл AVIF зураг сонгоно уу.`;
+    if (file.size > MAX_IMAGE_SIZE) return `${file.name}: зургийн хэмжээ 10 MB-с их байна.`;
+  }
+  return null;
+}
+
+async function saveLocalImage(file: File, slug: string) {
+  const fileName = `${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
+  const directory = path.join(process.cwd(), "public", "uploads", "projects", slug);
+  const filePath = path.join(directory, fileName);
+  await mkdir(directory, { recursive: true });
+  await writeFile(filePath, new Uint8Array(await file.arrayBuffer()));
+  return { url: `/uploads/projects/${slug}/${fileName}`, filePath };
+}
+
+function localPathFromUrl(url: string) {
+  if (!url.startsWith("/uploads/projects/")) return null;
+  const uploadsRoot = path.join(process.cwd(), "public", "uploads", "projects");
+  const filePath = path.join(process.cwd(), "public", url);
+  return filePath.startsWith(`${uploadsRoot}${path.sep}`) ? filePath : null;
+}
+
+function storagePathFromUrl(url: string) {
+  const marker = `/storage/v1/object/public/${PROJECT_IMAGE_BUCKET}/`;
+  const markerIndex = url.indexOf(marker);
+  return markerIndex === -1 ? null : decodeURIComponent(url.slice(markerIndex + marker.length));
+}
 
 export async function GET() {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   if (context.mode === "local") return NextResponse.json(await readLocalRecords("admin-projects.json"));
-  const { data, error } = await context.db.from("projects").select("*, project_media(url, media_type)").is("deleted_at", null).order("created_at", { ascending: false });
+  const { data, error } = await context.db.from("projects").select("*, project_media(url, media_type, display_order)").is("deleted_at", null).order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json((data ?? []).map(row => ({ id: row.id, title: row.title, slug: row.slug, location: row.general_location, area: `${row.total_area} м²`, year: String(row.completion_year ?? ""), duration: row.duration, image: row.project_media?.find((m: {media_type:string}) => m.media_type === "cover")?.url || "/images/hero-house.png", overview: row.overview, status: row.status })));
+  return NextResponse.json((data ?? []).map(row => {
+    const media = ((row.project_media ?? []) as { url: string; media_type: string; display_order: number | null }[]).sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    return { id: row.id, title: row.title, slug: row.slug, location: row.general_location, area: `${row.total_area} м²`, year: String(row.completion_year ?? ""), duration: row.duration, image: media.find(item => item.media_type === "cover")?.url || "/images/hero-house.png", images: media.filter(item => item.media_type === "gallery").map(item => item.url), overview: row.overview, status: row.status };
+  }));
 }
 
 export async function POST(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
-  const parsed = projectSchema.safeParse(await request.json().catch(() => null));
+  const formData = await request.formData().catch(() => null);
+  if (!formData) return NextResponse.json({ error: "Илгээсэн мэдээллийн формат буруу байна." }, { status: 400 });
+  const parsed = projectSchema.safeParse({
+    title: formData.get("title"), slug: formData.get("slug"), location: formData.get("location"),
+    totalArea: formData.get("totalArea"), year: formData.get("year"), duration: formData.get("duration"),
+    houseModelId: formData.get("houseModelId") ?? "", overview: formData.get("overview"), status: formData.get("status"),
+  });
   if (!parsed.success) return NextResponse.json({ error: "Мэдээллээ бүрэн, зөв оруулна уу.", fields: parsed.error.flatten().fieldErrors }, { status: 400 });
+  const coverEntry = formData.get("coverImage");
+  const galleryImages = formData.getAll("galleryImages").filter((entry): entry is File => entry instanceof File && entry.size > 0);
+  const fileError = imageValidationError(coverEntry, galleryImages);
+  if (fileError) return NextResponse.json({ error: fileError }, { status: 400 });
+  const coverImage = coverEntry as File;
   const value = parsed.data;
-  const record = { id: crypto.randomUUID(), title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: value.image, overview: value.overview, status: value.status };
   if (context.mode === "local") {
+    const record = { id: crypto.randomUUID(), title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: "", images: [] as string[], overview: value.overview, status: value.status };
     const records = await readLocalRecords<typeof record>("admin-projects.json");
     if (records.some(item => item.slug === value.slug)) return NextResponse.json({ error: "Ийм URL slug бүртгэлтэй байна." }, { status: 409 });
-    records.unshift(record); await writeLocalRecords("admin-projects.json", records);
-  } else {
-    const { data, error } = await context.db.from("projects").insert({ slug: value.slug, title: value.title, general_location: value.location, total_area: value.totalArea, completion_year: value.year, duration: value.duration, house_model_id: value.houseModelId || null, overview: value.overview, status: value.status, created_by: context.user.id, updated_by: context.user.id }).select("id").single();
-    if (error) return NextResponse.json({ error: error.code === "23505" ? "Ийм URL slug бүртгэлтэй байна." : error.message }, { status: 400 });
-    record.id = data.id;
-    const { error: mediaError } = await context.db.from("project_media").insert({ project_id: data.id, media_type: "cover", url: value.image, alt_text: value.title, display_order: 0 });
-    if (mediaError) return NextResponse.json({ error: mediaError.message }, { status: 500 });
+    const savedPaths: string[] = [];
+    try {
+      const savedCover = await saveLocalImage(coverImage, value.slug); savedPaths.push(savedCover.filePath); record.image = savedCover.url;
+      for (const image of galleryImages) {
+        const saved = await saveLocalImage(image, value.slug); savedPaths.push(saved.filePath); record.images.push(saved.url);
+      }
+      records.unshift(record); await writeLocalRecords("admin-projects.json", records);
+      return NextResponse.json(record, { status: 201 });
+    } catch {
+      await Promise.allSettled(savedPaths.map(filePath => unlink(filePath)));
+      return NextResponse.json({ error: "Зургийг хадгалж чадсангүй." }, { status: 500 });
+    }
   }
-  return NextResponse.json(record, { status: 201 });
+
+  const { data, error } = await context.db.from("projects").insert({ slug: value.slug, title: value.title, general_location: value.location, total_area: value.totalArea, completion_year: value.year, duration: value.duration, house_model_id: value.houseModelId || null, overview: value.overview, status: value.status, created_by: context.user.id, updated_by: context.user.id }).select("id").single();
+  if (error) return NextResponse.json({ error: error.code === "23505" ? "Ийм URL slug бүртгэлтэй байна." : error.message }, { status: 400 });
+
+  const storagePaths: string[] = [];
+  const urls: string[] = [];
+  try {
+    for (const file of [coverImage, ...galleryImages]) {
+      const storagePath = `${value.slug}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
+      const { error: uploadError } = await context.db.storage.from(PROJECT_IMAGE_BUCKET).upload(storagePath, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+      storagePaths.push(storagePath);
+      urls.push(context.db.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl);
+    }
+    const mediaRows = urls.map((url, index) => ({ project_id: data.id, media_type: index === 0 ? "cover" : "gallery", url, alt_text: value.title, display_order: index }));
+    const { error: mediaError } = await context.db.from("project_media").insert(mediaRows);
+    if (mediaError) throw mediaError;
+    const record = { id: data.id, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: urls[0], images: urls.slice(1), overview: value.overview, status: value.status };
+    return NextResponse.json(record, { status: 201 });
+  } catch (uploadError) {
+    if (storagePaths.length) await context.db.storage.from(PROJECT_IMAGE_BUCKET).remove(storagePaths);
+    await context.db.from("projects").delete().eq("id", data.id);
+    const message = uploadError instanceof Error ? uploadError.message : "Зургийг хадгалж чадсангүй.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  const context = await getAdminContext(["Admin", "Content Editor"]);
+  if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
+  const formData = await request.formData().catch(() => null);
+  if (!formData) return NextResponse.json({ error: "Илгээсэн мэдээллийн формат буруу байна." }, { status: 400 });
+  const id = z.string().uuid().safeParse(formData.get("id"));
+  const parsed = projectSchema.safeParse({
+    title: formData.get("title"), slug: formData.get("slug"), location: formData.get("location"),
+    totalArea: formData.get("totalArea"), year: formData.get("year"), duration: formData.get("duration"),
+    houseModelId: formData.get("houseModelId") ?? "", overview: formData.get("overview"), status: formData.get("status"),
+  });
+  if (!id.success || !parsed.success) return NextResponse.json({ error: "Мэдээллээ бүрэн, зөв оруулна уу." }, { status: 400 });
+
+  const coverEntry = formData.get("coverImage");
+  const coverImage = coverEntry instanceof File && coverEntry.size > 0 ? coverEntry : null;
+  const galleryImages = formData.getAll("galleryImages").filter((entry): entry is File => entry instanceof File && entry.size > 0);
+  const fileError = imageValidationError(coverEntry, galleryImages, false);
+  if (fileError) return NextResponse.json({ error: fileError }, { status: 400 });
+  const value = parsed.data;
+
+  if (context.mode === "local") {
+    type LocalRecord = { id: string; title: string; slug: string; location: string; area: string; year: string; duration: string; image: string; images: string[]; overview: string; status: "draft" | "published" };
+    const records = await readLocalRecords<LocalRecord>("admin-projects.json");
+    const index = records.findIndex(project => project.id === id.data);
+    if (index === -1) return NextResponse.json({ error: "Төсөл олдсонгүй." }, { status: 404 });
+    if (records.some((project, itemIndex) => itemIndex !== index && project.slug === value.slug)) return NextResponse.json({ error: "Ийм URL slug бүртгэлтэй байна." }, { status: 409 });
+
+    const previous = records[index];
+    const next: LocalRecord = { ...previous, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, overview: value.overview, status: value.status, images: previous.images ?? [] };
+    const savedPaths: string[] = [];
+    const obsoleteUrls: string[] = [];
+    try {
+      if (coverImage) {
+        const saved = await saveLocalImage(coverImage, value.slug); savedPaths.push(saved.filePath); obsoleteUrls.push(previous.image); next.image = saved.url;
+      }
+      if (galleryImages.length) {
+        const urls: string[] = [];
+        for (const image of galleryImages) {
+          const saved = await saveLocalImage(image, value.slug); savedPaths.push(saved.filePath); urls.push(saved.url);
+        }
+        obsoleteUrls.push(...(previous.images ?? [])); next.images = urls;
+      }
+      records[index] = next; await writeLocalRecords("admin-projects.json", records);
+      await Promise.allSettled(obsoleteUrls.map(localPathFromUrl).filter((filePath): filePath is string => Boolean(filePath)).map(filePath => unlink(filePath)));
+      return NextResponse.json(next);
+    } catch {
+      await Promise.allSettled(savedPaths.map(filePath => unlink(filePath)));
+      return NextResponse.json({ error: "Төслийг шинэчилж чадсангүй." }, { status: 500 });
+    }
+  }
+
+  const { data: existing, error: existingError } = await context.db.from("projects").select("id, project_media(id, url, media_type, display_order)").eq("id", id.data).is("deleted_at", null).single();
+  if (existingError || !existing) return NextResponse.json({ error: "Төсөл олдсонгүй." }, { status: 404 });
+  const previousMedia = (existing.project_media ?? []) as { id: string; url: string; media_type: string; display_order: number | null }[];
+  const storagePaths: string[] = [];
+  let newCoverUrl: string | null = null;
+  const newGalleryUrls: string[] = [];
+
+  try {
+    for (const file of [...(coverImage ? [coverImage] : []), ...galleryImages]) {
+      const storagePath = `${value.slug}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
+      const { error: uploadError } = await context.db.storage.from(PROJECT_IMAGE_BUCKET).upload(storagePath, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+      storagePaths.push(storagePath);
+      const publicUrl = context.db.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl;
+      if (coverImage && file === coverImage) newCoverUrl = publicUrl; else newGalleryUrls.push(publicUrl);
+    }
+
+    const { error: updateError } = await context.db.from("projects").update({ slug: value.slug, title: value.title, general_location: value.location, total_area: value.totalArea, completion_year: value.year, duration: value.duration, house_model_id: value.houseModelId || null, overview: value.overview, status: value.status, updated_by: context.user.id, updated_at: new Date().toISOString() }).eq("id", id.data);
+    if (updateError) {
+      if (updateError.code === "23505") throw new Error("Ийм URL slug бүртгэлтэй байна.");
+      throw updateError;
+    }
+
+    const newMediaRows = [
+      ...(newCoverUrl ? [{ project_id: id.data, media_type: "cover", url: newCoverUrl, alt_text: value.title, display_order: 0 }] : []),
+      ...newGalleryUrls.map((url, index) => ({ project_id: id.data, media_type: "gallery", url, alt_text: value.title, display_order: index + 1 })),
+    ];
+    const { data: insertedMedia, error: mediaError } = newMediaRows.length ? await context.db.from("project_media").insert(newMediaRows).select("id") : { data: [], error: null };
+    if (mediaError) throw mediaError;
+
+    const replacedMedia = previousMedia.filter(media => (newCoverUrl && media.media_type === "cover") || (newGalleryUrls.length && media.media_type === "gallery"));
+    if (replacedMedia.length) {
+      const { error: deleteError } = await context.db.from("project_media").delete().in("id", replacedMedia.map(media => media.id));
+      if (deleteError) {
+        if (insertedMedia?.length) await context.db.from("project_media").delete().in("id", insertedMedia.map(media => media.id));
+        throw deleteError;
+      }
+      const obsoleteStoragePaths = replacedMedia.map(media => storagePathFromUrl(media.url)).filter((storagePath): storagePath is string => Boolean(storagePath));
+      if (obsoleteStoragePaths.length) await context.db.storage.from(PROJECT_IMAGE_BUCKET).remove(obsoleteStoragePaths);
+    }
+
+    const coverUrl = newCoverUrl ?? previousMedia.find(media => media.media_type === "cover")?.url ?? "/images/hero-house.png";
+    const galleryUrls = newGalleryUrls.length ? newGalleryUrls : previousMedia.filter(media => media.media_type === "gallery").sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)).map(media => media.url);
+    return NextResponse.json({ id: id.data, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: coverUrl, images: galleryUrls, overview: value.overview, status: value.status });
+  } catch (updateError) {
+    if (storagePaths.length) await context.db.storage.from(PROJECT_IMAGE_BUCKET).remove(storagePaths);
+    const message = updateError instanceof Error ? updateError.message : "Төслийг шинэчилж чадсангүй.";
+    return NextResponse.json({ error: message }, { status: message.includes("slug") ? 409 : 500 });
+  }
 }

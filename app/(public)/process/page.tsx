@@ -1,2 +1,20 @@
-import { PageHero } from "@/components/page-hero";import { processSteps } from "@/lib/data";
-export const metadata={title:"Бид хэрхэн ажилладаг вэ?"};export default function Process(){return <><PageHero eyebrow="Ил тод дараалал" title="Бид хэрхэн ажилладаг вэ?" copy="Төслийн үе шат, хүлээгдэж буй үр дүн, шийдвэр бүрийг захиалагчтай хамт баталгаажуулна."/><section className="section"><div className="container"><div className="timeline">{processSteps.map((step,i)=><article className="timeline-item" key={step}><div className="eyebrow">{String(i+1).padStart(2,'0')} дүгээр үе шат</div><h3>{step}</h3><p>Энэ үе шатанд шаардлагатай мэдээлэл, шийдвэр, баримт бичгийг нэгтгэн дараагийн ажлын суурийг бүрдүүлнэ.</p></article>)}</div></div></section></>}
+import { PageHero } from "@/components/page-hero";
+import { getPublicProcessContent } from "@/lib/public-process";
+
+export const metadata = { title: "Бид хэрхэн ажилладаг вэ?" };
+export const dynamic = "force-dynamic";
+
+export default async function Process() {
+  const content = await getPublicProcessContent();
+
+  return <>
+    <PageHero eyebrow={content.eyebrow} title={content.title} copy={content.copy} />
+    <section className="section"><div className="container"><div className="timeline">
+      {content.steps.map((step, index) => <article className="timeline-item" key={step.id ?? `${index}-${step.title}`}>
+        <div className="eyebrow">{String(index + 1).padStart(2, "0")} дүгээр үе шат</div>
+        <h3>{step.title}</h3>
+        <p>{step.description}</p>
+      </article>)}
+    </div></div></section>
+  </>;
+}

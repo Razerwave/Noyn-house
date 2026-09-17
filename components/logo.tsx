@@ -4,7 +4,7 @@ import Image from "next/image";
 export function Logo({ inverse = false }: { inverse?: boolean }) {
   return (
     <Link href="/" className={`logo ${inverse ? "logo-inverse" : ""}`} aria-label="NOYON HOUSE нүүр">
-      <Image className="logo-image" src="/images/NoyonHouse2.png" alt="NOYON House construction" width={190} height={64} priority style={{ objectFit: "cover" }} />
+      <Image className="logo-image" src="/images/LOGO.png" alt="NOYON House construction" width={200} height={100} priority />
     </Link>
   );
 }

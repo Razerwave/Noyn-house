@@ -1,0 +1,153 @@
+.section {
+  position: relative;
+  overflow: hidden;
+  padding: 82px 0;
+  color: #fff;
+  background:
+    radial-gradient(circle at 58% 45%, rgba(255,255,255,.08), transparent 28%),
+    linear-gradient(115deg, #111 0%, #050606 68%, #151718 100%);
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .12;
+  background-image: repeating-linear-gradient(110deg, transparent 0 22px, rgba(255,255,255,.08) 23px, transparent 24px);
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: .8fr 1.45fr .55fr;
+  gap: 46px;
+  align-items: center;
+}
+
+.intro h2 {
+  margin: 17px 0 22px;
+  font-family: var(--sans);
+  font-size: clamp(40px, 4.2vw, 64px);
+  font-weight: 700;
+  line-height: .96;
+  letter-spacing: -.05em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  color: #ff5a1f;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .19em;
+  text-transform: uppercase;
+}
+
+.intro p {
+  max-width: 310px;
+  color: #a8adaf;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 9px;
+  padding: 13px 17px;
+  border: 1px solid #626667;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: .25s;
+}
+
+.link:hover { border-color: #ff5a1f; background: #ff5a1f; }
+
+.diagram {
+  position: relative;
+  min-height: 355px;
+  display: flex;
+  align-items: center;
+  perspective: 900px;
+}
+
+.studFrame {
+  position: absolute;
+  left: 2%;
+  top: 49px;
+  width: 42%;
+  height: 265px;
+  border: 18px solid #b98555;
+  border-width: 14px 18px;
+  transform: skewY(-7deg) rotateY(13deg);
+  background: linear-gradient(90deg, rgba(89,52,27,.7), rgba(215,164,111,.18));
+  box-shadow: inset 0 0 0 2px rgba(255,220,177,.18), 22px 22px 36px rgba(0,0,0,.45);
+}
+
+.studFrame i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 13px;
+  background: linear-gradient(90deg, #88562f, #d19a64 55%, #87532d);
+  box-shadow: 2px 0 5px rgba(0,0,0,.5);
+}
+
+.studFrame i:nth-child(1) { left: 17%; }
+.studFrame i:nth-child(2) { left: 42%; }
+.studFrame i:nth-child(3) { left: 67%; }
+.studFrame i:nth-child(4) { left: 89%; }
+
+.layers { width: 100%; padding-left: 30%; }
+.layerRow { height: 59px; display: grid; grid-template-columns: 52% 15% 33%; align-items: center; }
+
+.layer {
+  height: 65px;
+  transform: translateX(calc(var(--layer-index) * 14px)) skewY(-7deg) rotateY(-7deg);
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 12px 12px 22px rgba(0,0,0,.36);
+}
+
+.timber { background: repeating-linear-gradient(90deg, #9b693e 0 18px, #c18d59 19px 25px); }
+.insulation { background: linear-gradient(135deg, #806548, #be9870 48%, #72573e); }
+.osb { background: repeating-linear-gradient(120deg, #a4784c 0 3px, #815d3c 4px 7px, #b98c5c 8px 10px); }
+.membrane { background: linear-gradient(135deg, #e6e9e8 0%, #8f9698 46%, #f4f5f3 100%); }
+.facade { background: repeating-linear-gradient(90deg, #24282a 0 15px, #0e1011 16px 19px); }
+
+.connector { display: flex; align-items: center; padding-left: 10px; }
+.connector::before { content: ""; width: 7px; height: 7px; flex: 0 0 auto; border: 2px solid #fff; border-radius: 50%; background: #ff5a1f; }
+.connector i { display: block; width: 100%; height: 1px; background: #747879; }
+.layerRow span { padding-left: 12px; color: #c8ccce; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+
+.statement {
+  min-height: 250px;
+  padding-left: 38px;
+  border-left: 1px solid #383c3e;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.statement span { font-size: 17px; line-height: 1.45; letter-spacing: .14em; text-transform: uppercase; }
+.statement i { width: 30px; height: 2px; margin: 22px 0; background: #ff5a1f; }
+.statement small { color: #7e8588; font-size: 9px; line-height: 1.7; letter-spacing: .17em; text-transform: uppercase; }
+
+@media (max-width: 1000px) {
+  .inner { grid-template-columns: .75fr 1.25fr; }
+  .statement { display: none; }
+}
+
+@media (max-width: 680px) {
+  .section { padding: 65px 0; }
+  .inner { grid-template-columns: 1fr; gap: 28px; }
+  .intro h2 { font-size: 43px; }
+  .diagram { min-height: 330px; margin-left: -12px; }
+  .studFrame { width: 37%; left: 1%; }
+  .layers { padding-left: 22%; }
+  .layerRow { grid-template-columns: 49% 15% 36%; }
+  .layerRow span { font-size: 8px; letter-spacing: .05em; }
+}
