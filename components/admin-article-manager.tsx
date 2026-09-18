@@ -2,7 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
-type Article = { id?: string; title: string; slug: string; category: string; summary: string; content: string; image?: string; status: "draft" | "published"; publishedAt?: string };
+type Article = { id?: string; title: string; slug: string; category: string; summary: string; content: string; image?: string; images?: string[]; status: "draft" | "published"; publishedAt?: string };
 
 const seedArticles: Article[] = [
   { title: "Газраа хаус барихад хэрхэн бэлтгэх вэ?", slug: "gazar-beltyylelt", category: "Газар бэлтгэл", summary: "Хаус барихаас өмнө газрын нөхцөл, дэд бүтэц болон зөвшөөрлөө хэрхэн бэлтгэх тухай.", content: "Газрын байршил, хөрсний нөхцөл, цахилгаан болон усны шийдлээ эхлээд тодорхойлоорой.", status: "published", image: "/images/hero-house.png" },
@@ -20,14 +20,14 @@ export function AdminArticleManager({ initialItems }: { initialItems: Article[] 
   const [message, setMessage] = useState("");
   const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
-  const [imagePreview, setImagePreview] = useState("");
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   useEffect(() => { fetch("/api/admin/articles").then(response => response.ok ? response.json() : []).then((saved: Article[]) => { if (saved.length) setItems([...saved, ...seedArticles.filter(seed => !saved.some(item => item.slug === seed.slug))]); }).catch(() => undefined); }, []);
 
-  function startCreate() { setEditing(null); setSlug(""); setSlugTouched(false); setImagePreview(""); setMessage(""); setOpen(true); }
-  function startEdit(article: Article) { setEditing(article); setSlug(article.slug); setSlugTouched(true); setImagePreview(article.image ?? ""); setMessage(""); setOpen(true); window.scrollTo({ top: 0, behavior: "smooth" }); }
-  function closeEditor() { setOpen(false); setEditing(null); setMessage(""); setSlug(""); setSlugTouched(false); setImagePreview(""); }
-  function onImageChange(event: ChangeEvent<HTMLInputElement>) { const file = event.target.files?.[0]; if (file) setImagePreview(URL.createObjectURL(file)); }
+  function startCreate() { setEditing(null); setSlug(""); setSlugTouched(false); setImagePreviews([]); setMessage(""); setOpen(true); }
+  function startEdit(article: Article) { setEditing(article); setSlug(article.slug); setSlugTouched(true); setImagePreviews(article.images ?? (article.image ? [article.image] : [])); setMessage(""); setOpen(true); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function closeEditor() { setOpen(false); setEditing(null); setMessage(""); setSlug(""); setSlugTouched(false); setImagePreviews([]); }
+  function onImageChange(event: ChangeEvent<HTMLInputElement>) { const files = Array.from(event.target.files ?? []); setImagePreviews(files.map(file => URL.createObjectURL(file))); }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setMessage("");
@@ -59,7 +59,7 @@ export function AdminArticleManager({ initialItems }: { initialItems: Article[] 
         <div className="field"><label>Ангилал *</label><input name="category" required defaultValue={editing?.category} placeholder="Газар бэлтгэл" /></div>
         <div className="field full"><label>Товч агуулга *</label><textarea name="summary" required minLength={10} rows={3} defaultValue={editing?.summary} /></div>
         <div className="field full"><label>Нийтлэлийн агуулга *</label><textarea name="content" required minLength={10} rows={10} defaultValue={editing?.content} /></div>
-        <div className="field full"><label>Нийтлэлийн зураг {editing ? "" : "*"}</label>{editing?.image && <input type="hidden" name="existingImage" value={editing.image} />}<input name="coverImage" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required={!editing} onChange={onImageChange} /><small className="field-help">JPG, PNG, WebP эсвэл AVIF · дээд хэмжээ 10 MB{editing ? " · солихгүй бол одоогийн зураг үлдэнэ" : ""}</small>{imagePreview && <div className="admin-cover-preview"><img src={imagePreview} alt="Нийтлэлийн зургийн урьдчилсан харагдац" /></div>}</div>
+        <div className="field full"><label>Нийтлэлийн зургууд {editing ? "" : "*"}</label>{editing?.image && <input type="hidden" name="existingImage" value={editing.image} />}<input name="articleImages" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple required={!editing} onChange={onImageChange} /><small className="field-help">12 хүртэл JPG, PNG, WebP эсвэл AVIF зураг · зураг бүр 10 MB хүртэл{editing ? " · шинэ зураг сонговол одоогийн gallery солигдоно" : ""}</small>{imagePreviews.length > 0 && <div className="admin-gallery-preview">{imagePreviews.map((url, index) => <img key={`${url}-${index}`} src={url} alt={`Нийтлэлийн зураг ${index + 1}`} />)}</div>}</div>
         <div className="field"><label>Төлөв</label><select name="status" defaultValue={editing?.status ?? "draft"}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></select></div>
       </div>
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Нийтлэл хадгалах"}</button></div>

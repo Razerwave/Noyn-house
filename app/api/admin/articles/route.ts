@@ -15,9 +15,10 @@ const articleSchema = z.object({
 });
 const ARTICLE_IMAGE_BUCKET = "article-images";
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_ARTICLE_IMAGES = 12;
 const IMAGE_EXTENSIONS: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" };
 
-type Article = { id: string; title: string; slug: string; category: string; summary: string; content: string; image: string; status: "draft" | "published"; publishedAt?: string };
+type Article = { id: string; title: string; slug: string; category: string; summary: string; content: string; image: string; images?: string[]; status: "draft" | "published"; publishedAt?: string };
 
 function parseForm(formData: FormData) {
   return articleSchema.safeParse({
@@ -32,6 +33,17 @@ function validateImage(entry: FormDataEntryValue | null, required: boolean) {
   if (!file) return null;
   if (!IMAGE_EXTENSIONS[file.type]) return "JPG, PNG, WebP эсвэл AVIF зураг сонгоно уу.";
   if (file.size > MAX_IMAGE_SIZE) return "Зургийн хэмжээ 10 MB-с их байна.";
+  return null;
+}
+
+function validateImages(entries: FormDataEntryValue[], required: boolean) {
+  const files = entries.filter((entry): entry is File => entry instanceof File && entry.size > 0);
+  if (required && !files.length) return "Нийтлэлийн зураг сонгоно уу.";
+  if (files.length > MAX_ARTICLE_IMAGES) return `Нэг нийтлэлд ${MAX_ARTICLE_IMAGES}-с олон зураг оруулах боломжгүй.`;
+  for (const file of files) {
+    if (!IMAGE_EXTENSIONS[file.type]) return `${file.name}: JPG, PNG, WebP эсвэл AVIF зураг сонгоно уу.`;
+    if (file.size > MAX_IMAGE_SIZE) return `${file.name}: зургийн хэмжээ 10 MB-с их байна.`;
+  }
   return null;
 }
 
@@ -66,10 +78,11 @@ async function uploadArticleImage(db: any, file: File, slug: string) {
 }
 
 function toArticle(row: any): Article {
+  const content = typeof row.content === "string" ? row.content : row.content?.text ?? "";
+  const images = typeof row.content === "object" && Array.isArray(row.content?.images) ? row.content.images : (row.image ? [row.image] : []);
   return {
     id: row.id, title: row.title, slug: row.slug, category: row.category ?? row.article_categories?.name ?? "Мэдээ",
-    summary: row.summary ?? "", content: typeof row.content === "string" ? row.content : row.content?.text ?? "",
-    image: row.image ?? row.cover_image ?? "/images/hero-house.png", status: row.status, publishedAt: row.published_at,
+    summary: row.summary ?? "", content, image: row.image ?? row.cover_image ?? "/images/hero-house.png", images, status: row.status, publishedAt: row.published_at,
   };
 }
 
@@ -107,10 +120,12 @@ async function saveArticle(request: Request, mode: "create" | "update") {
   const id = formData.get("id");
   if (!parsed.success || (mode === "update" && typeof id !== "string")) return NextResponse.json({ error: "Мэдээллээ бүрэн, зөв оруулна уу." }, { status: 400 });
   const value = parsed.data;
-  const imageEntry = formData.get("coverImage");
-  const image = imageEntry instanceof File && imageEntry.size > 0 ? imageEntry : null;
+  const imageEntries = formData.getAll("articleImages");
+  const imageEntry = imageEntries[0] ?? null;
+  const images = imageEntries.filter((entry): entry is File => entry instanceof File && entry.size > 0);
+  const image = images[0] ?? null;
   const existingImage = typeof formData.get("existingImage") === "string" ? String(formData.get("existingImage")) : "";
-  const imageError = validateImage(imageEntry, mode === "create" && !existingImage);
+  const imageError = validateImages(imageEntries, mode === "create" && !existingImage);
   if (imageError) return NextResponse.json({ error: imageError }, { status: 400 });
   const publishedAt = value.status === "published" ? new Date().toISOString() : undefined;
 
@@ -121,28 +136,28 @@ async function saveArticle(request: Request, mode: "create" | "update") {
       const index = records.findIndex(item => item.id === id);
       if (index === -1) return NextResponse.json({ error: "Нийтлэл олдсонгүй." }, { status: 404 });
       let imageUrl = records[index].image;
-      let savedPath: string | null = null;
-      if (image) { const saved = await saveLocalImage(image, value.slug); imageUrl = saved.url; savedPath = saved.filePath; }
-      const next = { ...records[index], ...value, image: imageUrl, publishedAt: publishedAt ?? records[index].publishedAt };
+      let articleImages = records[index].images ?? (imageUrl ? [imageUrl] : []);
+      if (images.length) { articleImages = []; for (const file of images) articleImages.push((await saveLocalImage(file, value.slug)).url); imageUrl = articleImages[0]; }
+      const next = { ...records[index], ...value, image: imageUrl, images: articleImages, publishedAt: publishedAt ?? records[index].publishedAt };
       records[index] = next; await writeLocalRecords("admin-articles.json", records); return NextResponse.json(next);
     }
-    const saved = await saveLocalImage(image as File, value.slug);
-    const article: Article = { id: crypto.randomUUID(), ...value, image: saved.url, publishedAt };
+    const articleImages: string[] = [];
+    for (const file of images) articleImages.push((await saveLocalImage(file, value.slug)).url);
+    const article: Article = { id: crypto.randomUUID(), ...value, image: articleImages[0], images: articleImages, publishedAt };
     records.unshift(article); await writeLocalRecords("admin-articles.json", records); return NextResponse.json(article, { status: 201 });
   }
 
   let imageUrl = existingImage;
-  if (image) {
-    imageUrl = (await uploadArticleImage(context.db, image, value.slug)).url;
-  }
+  let articleImages = existingImage ? [existingImage] : [];
+  if (images.length) { articleImages = []; for (const file of images) articleImages.push((await uploadArticleImage(context.db, file, value.slug)).url); imageUrl = articleImages[0]; }
   if (mode === "update") {
     const categoryId = await findCategoryId(context.db, value.category);
-    const { data, error } = await context.db.from("articles").update({ title: value.title, slug: value.slug, category_id: categoryId, cover_image: imageUrl || null, summary: value.summary, content: { text: value.content }, status: value.status, published_at: publishedAt, updated_at: new Date().toISOString() }).eq("id", id).is("deleted_at", null).select("*, article_categories(name)").single();
+    const { data, error } = await context.db.from("articles").update({ title: value.title, slug: value.slug, category_id: categoryId, cover_image: imageUrl || null, summary: value.summary, content: { text: value.content, images: articleImages }, status: value.status, published_at: publishedAt, updated_at: new Date().toISOString() }).eq("id", id).is("deleted_at", null).select("*, article_categories(name)").single();
     if (error) return NextResponse.json({ error: error.code === "23505" ? "Ийм URL slug бүртгэлтэй байна." : error.message }, { status: 400 });
     return NextResponse.json(toArticle(data));
   }
   const categoryId = await findCategoryId(context.db, value.category);
-  const { data, error } = await context.db.from("articles").insert({ title: value.title, slug: value.slug, category_id: categoryId, cover_image: imageUrl, summary: value.summary, content: { text: value.content }, status: value.status, published_at: publishedAt, author_id: context.user.id }).select("*, article_categories(name)").single();
+  const { data, error } = await context.db.from("articles").insert({ title: value.title, slug: value.slug, category_id: categoryId, cover_image: imageUrl, summary: value.summary, content: { text: value.content, images: articleImages }, status: value.status, published_at: publishedAt, author_id: context.user.id }).select("*, article_categories(name)").single();
   if (error) return NextResponse.json({ error: error.code === "23505" ? "Ийм URL slug бүртгэлтэй байна." : error.message }, { status: 400 });
   return NextResponse.json(toArticle(data), { status: 201 });
 }
