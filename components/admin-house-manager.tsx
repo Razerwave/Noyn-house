@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { CustomSelect } from "./custom-select";
 
 type House = { id?: string; name: string; slug: string; category: string; image: string; images?: string[]; area: string; floors: number; bedrooms: number; bathrooms?: number; dimensions?: string; description: string; status?: string };
 
@@ -87,6 +88,16 @@ export function AdminHouseManager({ initialItems }: { initialItems: House[] }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  async function remove(house: House) {
+    if (!house.id || !window.confirm(`“${house.name}” загварыг устгах уу?`)) return;
+    setMessage("");
+    const response = await fetch(`/api/admin/houses?id=${house.id}`, { method: "DELETE" });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) { setMessage(result.error || "Загварыг устгаж чадсангүй."); return; }
+    setItems(current => current.filter(item => item.id !== house.id));
+    setMessage("Хаусын загвар амжилттай устгагдлаа.");
+  }
+
   return <>
     <div className="admin-top"><div><h1>Хаусын загварууд</h1><small>Загвар, үзүүлэлт, зураг, PDF удирдах</small></div><button className="button" onClick={() => open ? closeEditor() : startCreate()}>{open ? "Хаах" : "+ Шинэ загвар"}</button></div>
     {open && <form key={editing?.id ?? editing?.slug ?? "new"} className="admin-card admin-editor" onSubmit={submit}>
@@ -115,11 +126,11 @@ export function AdminHouseManager({ initialItems }: { initialItems: House[] }) {
           {galleryPreviews.length > 0 && <div className="admin-gallery-preview">{galleryPreviews.map((url, index) => <img key={url} src={url} alt={`Нэмэлт зураг ${index + 1}`} />)}</div>}
         </div>
         <div className="field full"><label>Товч тайлбар *</label><textarea name="description" required minLength={10} rows={4} defaultValue={editing?.description} /></div>
-        <div className="field"><label>Төлөв</label><select name="status" defaultValue={editing?.status ?? "draft"}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></select></div>
+        <div className="field"><label>Төлөв</label><CustomSelect name="status" defaultValue={editing?.status ?? "draft"}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></CustomSelect></div>
       </div>
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Загвар хадгалах"}</button></div>
     </form>}
     {message && <div className={message.includes("амжилттай") ? "admin-alert success" : "admin-alert error"}>{message}</div>}
-    <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Нэр</th><th>Ангилал</th><th>Талбай</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td><img src={item.image} alt="" width="70" height="45" className="admin-thumb" /></td><td><strong>{item.name}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.category}</td><td>{item.area}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button></td></tr>)}</tbody></table></div>
+    <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Нэр</th><th>Ангилал</th><th>Талбай</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td><img src={item.image} alt="" width="70" height="45" className="admin-thumb" /></td><td><strong>{item.name}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.category}</td><td>{item.area}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
   </>;
 }

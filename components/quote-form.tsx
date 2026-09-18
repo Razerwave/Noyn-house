@@ -1,4 +1,293 @@
 "use client";
-import { useState } from "react";import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
-const labels=["Хаусын мэдээлэл","Газрын мэдээлэл","Төсөв, хугацаа","Холбоо барих"];
-export function QuoteForm(){const [step,setStep]=useState(0);const [draft,setDraft]=useState<Record<string,string>>({});const [sent,setSent]=useState<string|null>(null);const [error,setError]=useState<string|null>(null);const [busy,setBusy]=useState(false);async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setError(null);const fd=new FormData(e.currentTarget);const body={...draft,...Object.fromEntries(fd.entries())};try{const r=await fetch('/api/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error);setSent(j.enquiryNumber)}catch(err){setError(err instanceof Error?err.message:'Хүсэлтийг илгээж чадсангүй. Дахин оролдоно уу.')}finally{setBusy(false)}}function remember(e:React.FormEvent<HTMLFormElement>){const t=e.target as HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;if(!t.name)return;setDraft(d=>({...d,[t.name]:t.type==='checkbox'?String((t as HTMLInputElement).checked):t.value}))}if(sent)return <div className="notice"><CheckCircle2/><h2>Хүсэлт амжилттай</h2><p>Таны хүсэлтийг амжилттай хүлээн авлаа. Манай ажилтан тантай холбогдох болно.</p><strong>Хүсэлтийн дугаар: {sent}</strong></div>;return <div className="quote-shell"><ol className="steps">{labels.map((x,i)=><li className={i===step?'active':''} key={x}><b>{i+1}</b><span>{x}</span></li>)}</ol><form className="quote-form" onInput={remember} onChange={remember} onSubmit={submit}>{step===0&&<><h2>Хаусын мэдээлэл</h2><div className="field-grid"><div className="field full"><label>Сонирхож буй загвар</label><select name="model" defaultValue={draft.model}><option>NOMAD 96</option><option>KHAAN 180</option><option>TAIGA 128</option><option>Одоогоор сонгоогүй</option></select></div><div className="field"><label>Хүсэж буй нийт талбай</label><input name="area" defaultValue={draft.area} placeholder="жишээ: 120 м²"/></div><div className="field"><label>Давхар</label><select name="floors" defaultValue={draft.floors}><option>1 давхар</option><option>2 давхар</option></select></div><div className="field"><label>Өрөөний тоо</label><input name="rooms" defaultValue={draft.rooms} type="number" min="1"/></div><div className="field"><label>Унтлагын өрөө</label><input name="bedrooms" defaultValue={draft.bedrooms} type="number" min="1"/></div></div></>}{step===1&&<><h2>Газрын мэдээлэл</h2><div className="field-grid"><div className="field full"><label>Барих газрын байршил *</label><input name="location" defaultValue={draft.location} required placeholder="Аймаг, хот, дүүрэг"/></div><div className="field"><label>Газар бэлэн эсэх</label><select name="landReady" defaultValue={draft.landReady}><option>Бэлэн</option><option>Хайж байгаа</option></select></div><div className="field"><label>Газрын хэмжээ</label><input name="landSize" defaultValue={draft.landSize} placeholder="жишээ: 700 м²"/></div><div className="field"><label>Цахилгаан</label><select name="electricity" defaultValue={draft.electricity}><option>Байгаа</option><option>Байхгүй</option><option>Тодорхойгүй</option></select></div><div className="field"><label>Цэвэр ус</label><select name="water" defaultValue={draft.water}><option>Байгаа</option><option>Байхгүй</option><option>Тодорхойгүй</option></select></div><div className="field full"><label>Нэмэлт тайлбар</label><textarea name="landNote" defaultValue={draft.landNote} rows={4}/></div></div></>}{step===2&&<><h2>Төсөв ба хугацаа</h2><div className="field-grid"><div className="field"><label>Эхлүүлэх хугацаа</label><select name="schedule" defaultValue={draft.schedule}><option>3 сарын дотор</option><option>3–6 сарын дотор</option><option>6–12 сарын дотор</option><option>Судалж байгаа</option></select></div><div className="field"><label>Төсвийн хэмжээ</label><select name="budget" defaultValue={draft.budget}><option>Тодорхойгүй</option><option>Төсөв ярилцах</option><option>Санхүүжилт судалж байгаа</option></select></div><div className="field full"><label>Сонирхож буй үйлчилгээ</label><select name="service" defaultValue={draft.service}><option>Зураг төсөл + барилга угсралт</option><option>Зөвхөн зураг төсөл</option><option>Зөвхөн барилга угсралт</option></select></div><div className="field full"><label>Нэмэлт шаардлага</label><textarea name="requirements" defaultValue={draft.requirements} rows={4}/></div></div></>}{step===3&&<><h2>Холбоо барих мэдээлэл</h2><div className="field-grid"><div className="field"><label>Нэр *</label><input name="name" defaultValue={draft.name} required/></div><div className="field"><label>Утасны дугаар *</label><input name="phone" defaultValue={draft.phone} required pattern="[+0-9 ()-]{8,}"/></div><div className="field"><label>Имэйл</label><input name="email" defaultValue={draft.email} type="email"/></div><div className="field"><label>Холбогдох хэлбэр</label><select name="contactMethod" defaultValue={draft.contactMethod}><option>Утсаар</option><option>Имэйлээр</option></select></div><div className="field full"><label><input name="consent" type="checkbox" required/> Хувийн мэдээлэл боловсруулах нөхцөлийг зөвшөөрч байна. *</label></div></div></>}{error&&<p style={{color:'#b51f2b',marginTop:18}}>{error}</p>}<div className="form-actions"><button type="button" className="button ghost" style={{color:'#172126',borderColor:'#bbb',visibility:step===0?'hidden':'visible'}} onClick={()=>setStep(step-1)}><ArrowLeft size={16}/> Өмнөх</button>{step<3?<button type="button" className="button" onClick={()=>setStep(step+1)}>Үргэлжлүүлэх <ArrowRight size={16}/></button>:<button className="button" disabled={busy}>{busy?'Илгээж байна…':'Хүсэлт илгээх'}</button>}</div></form></div>}
+import { useState } from "react";
+import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import type { PublicHouse } from "@/lib/public-houses";
+import { CustomSelect } from "./custom-select";
+const labels = [
+  "Хаусын мэдээлэл",
+  "Газрын мэдээлэл",
+  "Төсөв, хугацаа",
+  "Холбоо барих",
+];
+export function QuoteForm({ models, initialModel = "" }: { models: PublicHouse[]; initialModel?: string }) {
+  const [step, setStep] = useState(0);
+  const [draft, setDraft] = useState<Record<string, string>>({ model: initialModel });
+  const [sent, setSent] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const fd = new FormData(e.currentTarget);
+    const body = { ...draft, ...Object.fromEntries(fd.entries()) };
+    try {
+      const r = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error);
+      setSent(j.enquiryNumber);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Хүсэлтийг илгээж чадсангүй. Дахин оролдоно уу.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  function remember(e: React.FormEvent<HTMLFormElement>) {
+    const t = e.target as
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    if (!t.name) return;
+    setDraft((d) => ({
+      ...d,
+      [t.name]:
+        t.type === "checkbox"
+          ? String((t as HTMLInputElement).checked)
+          : t.value,
+    }));
+  }
+  if (sent)
+    return (
+      <div className="notice">
+        <CheckCircle2 />
+        <h2>Хүсэлт амжилттай</h2>
+        <p>
+          Таны хүсэлтийг амжилттай хүлээн авлаа. Манай ажилтан тантай холбогдох
+          болно.
+        </p>
+        <strong>Хүсэлтийн дугаар: {sent}</strong>
+      </div>
+    );
+  return (
+    <div className="quote-shell">
+      <ol className="steps">
+        {labels.map((x, i) => (
+          <li className={i === step ? "active" : ""} key={x}>
+            <b>{i + 1}</b>
+            <span>{x}</span>
+          </li>
+        ))}
+      </ol>
+      <form
+        className="quote-form"
+        onInput={remember}
+        onChange={remember}
+        onSubmit={submit}
+      >
+        {step === 0 && (
+          <>
+            <h2>Хаусын мэдээлэл</h2>
+            <div className="field-grid">
+              <div className="field full">
+                <label>Сонирхож буй загвар</label>
+                <CustomSelect name="model" defaultValue={draft.model}>
+                  <option value="">Одоогоор сонгоогүй</option>
+                  {models.map(model => <option value={model.slug} key={model.id ?? model.slug}>{model.name} · {model.area}</option>)}
+                </CustomSelect>
+              </div>
+              <div className="field">
+                <label>Хүсэж буй нийт талбай</label>
+                <input
+                  name="area"
+                  defaultValue={draft.area}
+                  placeholder="жишээ: 120 м²"
+                />
+              </div>
+              <div className="field">
+                <label>Давхар</label>
+                <CustomSelect name="floors" defaultValue={draft.floors}>
+                  <option>1 давхар</option>
+                  <option>2 давхар</option>
+                </CustomSelect>
+              </div>
+              <div className="field">
+                <label>Өрөөний тоо</label>
+                <input
+                  name="rooms"
+                  defaultValue={draft.rooms}
+                  type="number"
+                  min="1"
+                />
+              </div>
+              <div className="field">
+                <label>Унтлагын өрөө</label>
+                <input
+                  name="bedrooms"
+                  defaultValue={draft.bedrooms}
+                  type="number"
+                  min="1"
+                />
+              </div>
+            </div>
+          </>
+        )}
+        {step === 1 && (
+          <>
+            <h2>Газрын мэдээлэл</h2>
+            <div className="field-grid">
+              <div className="field full">
+                <label>Барих газрын байршил *</label>
+                <input
+                  name="location"
+                  defaultValue={draft.location}
+                  required
+                  placeholder="Аймаг, хот, дүүрэг"
+                />
+              </div>
+              <div className="field">
+                <label>Газар бэлэн эсэх</label>
+                <CustomSelect name="landReady" defaultValue={draft.landReady}>
+                  <option>Бэлэн</option>
+                  <option>Хайж байгаа</option>
+                </CustomSelect>
+              </div>
+              <div className="field">
+                <label>Газрын хэмжээ</label>
+                <input
+                  name="landSize"
+                  defaultValue={draft.landSize}
+                  placeholder="жишээ: 700 м²"
+                />
+              </div>
+              <div className="field">
+                <label>Цахилгаан</label>
+                <CustomSelect name="electricity" defaultValue={draft.electricity}>
+                  <option>Байгаа</option>
+                  <option>Байхгүй</option>
+                  <option>Тодорхойгүй</option>
+                </CustomSelect>
+              </div>
+              <div className="field">
+                <label>Цэвэр ус</label>
+                <CustomSelect name="water" defaultValue={draft.water}>
+                  <option>Байгаа</option>
+                  <option>Байхгүй</option>
+                  <option>Тодорхойгүй</option>
+                </CustomSelect>
+              </div>
+              <div className="field full">
+                <label>Нэмэлт тайлбар</label>
+                <textarea
+                  name="landNote"
+                  defaultValue={draft.landNote}
+                  rows={4}
+                />
+              </div>
+            </div>
+          </>
+        )}
+        {step === 2 && (
+          <>
+            <h2>Төсөв ба хугацаа</h2>
+            <div className="field-grid">
+              <div className="field">
+                <label>Эхлүүлэх хугацаа</label>
+                <CustomSelect name="schedule" defaultValue={draft.schedule}>
+                  <option>3 сарын дотор</option>
+                  <option>3–6 сарын дотор</option>
+                  <option>6–12 сарын дотор</option>
+                  <option>Судалж байгаа</option>
+                </CustomSelect>
+              </div>
+              <div className="field">
+                <label>Төсвийн хэмжээ</label>
+                <CustomSelect name="budget" defaultValue={draft.budget}>
+                  <option>Тодорхойгүй</option>
+                  <option>Төсөв ярилцах</option>
+                  <option>Санхүүжилт судалж байгаа</option>
+                </CustomSelect>
+              </div>
+              <div className="field full">
+                <label>Сонирхож буй үйлчилгээ</label>
+                <CustomSelect name="service" defaultValue={draft.service}>
+                  <option>Зураг төсөл + барилга угсралт</option>
+                  <option>Зөвхөн зураг төсөл</option>
+                  <option>Зөвхөн барилга угсралт</option>
+                </CustomSelect>
+              </div>
+              <div className="field full">
+                <label>Нэмэлт шаардлага</label>
+                <textarea
+                  name="requirements"
+                  defaultValue={draft.requirements}
+                  rows={4}
+                />
+              </div>
+            </div>
+          </>
+        )}
+        {step === 3 && (
+          <>
+            <h2>Холбоо барих мэдээлэл</h2>
+            <div className="field-grid">
+              <div className="field">
+                <label>Нэр *</label>
+                <input name="name" defaultValue={draft.name} required />
+              </div>
+              <div className="field">
+                <label>Утасны дугаар *</label>
+                <input
+                  name="phone"
+                  defaultValue={draft.phone}
+                  required
+                  pattern="[+0-9 ()-]{8,}"
+                />
+              </div>
+              <div className="field">
+                <label>Имэйл</label>
+                <input name="email" defaultValue={draft.email} type="email" />
+              </div>
+              <div className="field">
+                <label>Холбогдох хэлбэр</label>
+                <CustomSelect name="contactMethod" defaultValue={draft.contactMethod}>
+                  <option>Утсаар</option>
+                  <option>Имэйлээр</option>
+                </CustomSelect>
+              </div>
+              <div className="field full">
+                <label>
+                  <input name="consent" type="checkbox" required /> Хувийн
+                  мэдээлэл боловсруулах нөхцөлийг зөвшөөрч байна. *
+                </label>
+              </div>
+            </div>
+          </>
+        )}
+        {error && <p style={{ color: "#b51f2b", marginTop: 18 }}>{error}</p>}
+        <div className="form-actions">
+          <button
+            type="button"
+            className="button ghost"
+            style={{
+              color: "#172126",
+              borderColor: "#bbb",
+              visibility: step === 0 ? "hidden" : "visible",
+            }}
+            onClick={() => setStep(step - 1)}
+          >
+            <ArrowLeft size={16} /> Өмнөх
+          </button>
+          {step < 3 ? (
+            <button
+              type="button"
+              className="button"
+              onClick={() => setStep(step + 1)}
+            >
+              Үргэлжлүүлэх <ArrowRight size={16} />
+            </button>
+          ) : (
+            <button className="button" disabled={busy}>
+              {busy ? "Илгээж байна…" : "Хүсэлт илгээх"}
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+}

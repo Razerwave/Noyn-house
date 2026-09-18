@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { CustomSelect } from "./custom-select";
 
 type Article = { id?: string; title: string; slug: string; category: string; summary: string; content: string; image?: string; images?: string[]; status: "draft" | "published"; publishedAt?: string };
 
@@ -60,7 +61,7 @@ export function AdminArticleManager({ initialItems }: { initialItems: Article[] 
         <div className="field full"><label>Товч агуулга *</label><textarea name="summary" required minLength={10} rows={3} defaultValue={editing?.summary} /></div>
         <div className="field full"><label>Нийтлэлийн агуулга *</label><textarea name="content" required minLength={10} rows={10} defaultValue={editing?.content} /></div>
         <div className="field full"><label>Нийтлэлийн зургууд {editing ? "" : "*"}</label>{editing?.image && <input type="hidden" name="existingImage" value={editing.image} />}<input name="articleImages" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple required={!editing} onChange={onImageChange} /><small className="field-help">12 хүртэл JPG, PNG, WebP эсвэл AVIF зураг · зураг бүр 10 MB хүртэл{editing ? " · шинэ зураг сонговол одоогийн gallery солигдоно" : ""}</small>{imagePreviews.length > 0 && <div className="admin-gallery-preview">{imagePreviews.map((url, index) => <img key={`${url}-${index}`} src={url} alt={`Нийтлэлийн зураг ${index + 1}`} />)}</div>}</div>
-        <div className="field"><label>Төлөв</label><select name="status" defaultValue={editing?.status ?? "draft"}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></select></div>
+        <div className="field"><label>Төлөв</label><CustomSelect name="status" defaultValue={editing?.status ?? "draft"}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></CustomSelect></div>
       </div>
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Нийтлэл хадгалах"}</button></div>
     </form>}

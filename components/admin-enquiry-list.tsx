@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import { CustomSelect } from "./custom-select";
 
 export type AdminEnquiry = {
   enquiryNumber: string;
@@ -82,7 +83,7 @@ export function AdminEnquiryList({ enquiries }: { enquiries: AdminEnquiry[] }) {
     <div className="admin-card">
       <div className="filter-bar">
         <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Нэр, утас, дугаараар хайх" />
-        <select value={status} onChange={event => setStatus(event.target.value)}><option value="">Бүх төлөв</option>{statuses.map(item => <option key={item}>{item}</option>)}</select>
+        <CustomSelect value={status} onChange={event => setStatus(event.target.value)}><option value="">Бүх төлөв</option>{statuses.map(item => <option key={item}>{item}</option>)}</CustomSelect>
       </div>
       {filtered.length > 0 ? <table className="admin-table enquiry-table">
         <thead><tr><th>Дугаар / Огноо</th><th>Нэр</th><th>Утас</th><th>Загвар</th><th>Байршил</th><th>Төсөв</th><th>Төлөв</th><th></th></tr></thead>
