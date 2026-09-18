@@ -15,7 +15,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="nav-wrap">
-        <Logo />
+        <Logo header />
         <nav className={open ? "nav-open" : ""}>
           {links.map(([href, label]) => <Link key={href} href={href} onClick={() => setOpen(false)}>{label}</Link>)}
           <Link className="mobile-only" href="/contact">Холбоо барих</Link>
