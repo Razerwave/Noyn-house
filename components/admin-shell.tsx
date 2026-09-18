@@ -1,11 +1,11 @@
 import { getAdminContext } from "@/lib/admin-auth";
 import { AdminSidebar } from "./admin-sidebar";
 
-const allLinks = ["/admin", "/admin/enquiries", "/admin/houses", "/admin/projects", "/admin/content", "/admin/settings"];
+const allLinks = ["/admin", "/admin/analytics", "/admin/featured-project", "/admin/enquiries", "/admin/houses", "/admin/projects", "/admin/content", "/admin/settings"];
 const roleLinks: Record<string, string[]> = {
   Admin: allLinks,
   Sales: ["/admin", "/admin/enquiries"],
-  "Content Editor": ["/admin", "/admin/houses", "/admin/projects", "/admin/content"],
+  "Content Editor": ["/admin", "/admin/analytics", "/admin/featured-project", "/admin/houses", "/admin/projects", "/admin/content"],
 };
 
 export async function AdminShell({ children, role }: { children: React.ReactNode; role?: string }) {

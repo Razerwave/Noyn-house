@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { CustomSelect } from "./custom-select";
 import type { FeaturedProject } from "@/lib/featured-project";
+import { toast } from "sonner";
 
 export function AdminFeaturedProjectEditor() {
   const [value, setValue] = useState<FeaturedProject | null>(null);
@@ -26,7 +27,8 @@ export function AdminFeaturedProjectEditor() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Хадгалж чадсангүй.");
       setValue(result); setMessage("Онцлох төслийн тохиргоо хадгалагдлаа.");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "Хадгалж чадсангүй."); }
+      toast.success("Онцлох төслийн тохиргоо хадгалагдлаа.");
+    } catch (error) { const message = error instanceof Error ? error.message : "Хадгалж чадсангүй."; setMessage(message); toast.error(message); }
     finally { setBusy(false); }
   }
 
@@ -54,7 +56,6 @@ export function AdminFeaturedProjectEditor() {
       <div className="field"><label>Харуулах дуусах огноо</label><input name="endsAt" type="datetime-local" value={value.endsAt} onChange={event => setValue({ ...value, endsAt: event.target.value })} /></div>
       <div className="field"><label>Төлөв</label><CustomSelect name="status" value={value.status} onChange={event => setValue({ ...value, status: event.target.value as FeaturedProject["status"] })}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></CustomSelect></div>
     </div>
-    {message && <div className={message.includes("хадгалагдлаа") ? "admin-alert success" : "admin-alert error"}>{message}</div>}
     <div className="admin-form-actions"><button className="button" disabled={busy}>{busy ? "Хадгалж байна..." : "Хадгалах"}</button></div>
   </form>;
 }

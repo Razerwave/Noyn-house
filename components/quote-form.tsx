@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import type { PublicHouse } from "@/lib/public-houses";
 import { CustomSelect } from "./custom-select";
 const labels = [
@@ -12,13 +13,10 @@ const labels = [
 export function QuoteForm({ models, initialModel = "" }: { models: PublicHouse[]; initialModel?: string }) {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Record<string, string>>({ model: initialModel });
-  const [sent, setSent] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
-    setError(null);
     const fd = new FormData(e.currentTarget);
     const body = { ...draft, ...Object.fromEntries(fd.entries()) };
     try {
@@ -29,13 +27,12 @@ export function QuoteForm({ models, initialModel = "" }: { models: PublicHouse[]
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error);
-      setSent(j.enquiryNumber);
+      toast.success(`Хүсэлт амжилттай илгээгдлээ: ${j.enquiryNumber}`);
+      e.currentTarget.reset();
+      setDraft({ model: initialModel });
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Хүсэлтийг илгээж чадсангүй. Дахин оролдоно уу.",
-      );
+      const message = err instanceof Error ? err.message : "Хүсэлтийг илгээж чадсангүй. Дахин оролдоно уу.";
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -52,18 +49,6 @@ export function QuoteForm({ models, initialModel = "" }: { models: PublicHouse[]
           : t.value,
     }));
   }
-  if (sent)
-    return (
-      <div className="notice">
-        <CheckCircle2 />
-        <h2>Хүсэлт амжилттай</h2>
-        <p>
-          Таны хүсэлтийг амжилттай хүлээн авлаа. Манай ажилтан тантай холбогдох
-          болно.
-        </p>
-        <strong>Хүсэлтийн дугаар: {sent}</strong>
-      </div>
-    );
   return (
     <div className="quote-shell">
       <ol className="steps">
@@ -259,7 +244,6 @@ export function QuoteForm({ models, initialModel = "" }: { models: PublicHouse[]
             </div>
           </>
         )}
-        {error && <p style={{ color: "#b51f2b", marginTop: 18 }}>{error}</p>}
         <div className="form-actions">
           <button
             type="button"

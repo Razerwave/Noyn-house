@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { AdminImageTooltip } from "./admin-image-tooltip";
+import { toast } from "sonner";
 import { CustomSelect } from "./custom-select";
 
 type Article = { id?: string; title: string; slug: string; category: string; summary: string; content: string; image?: string; images?: string[]; status: "draft" | "published"; publishedAt?: string };
@@ -37,17 +38,17 @@ export function AdminArticleManager({ initialItems }: { initialItems: Article[] 
     try {
       const response = await fetch("/api/admin/articles", { method: editing ? "PATCH" : "POST", body: new FormData(form) });
       const result = await response.json();
-      if (!response.ok) { setMessage(result.error || "Хадгалж чадсангүй."); return; }
+      if (!response.ok) { const message = result.error || "Хадгалж чадсангүй."; setMessage(message); toast.error(message); return; }
       setItems(current => editing ? current.map(item => item.id === result.id ? result : item) : [result, ...current]);
-      setMessage(editing ? "Нийтлэл шинэчлэгдлээ." : "Нийтлэл хадгалагдлаа."); closeEditor();
-    } catch { setMessage("Сүлжээний алдаа гарлаа."); } finally { setBusy(false); }
+      const message = editing ? "Нийтлэл шинэчлэгдлээ." : "Нийтлэл хадгалагдлаа."; setMessage(message); toast.success(message); closeEditor();
+    } catch { setMessage("Сүлжээний алдаа гарлаа."); toast.error("Сүлжээний алдаа гарлаа."); } finally { setBusy(false); }
   }
 
   async function remove(article: Article) {
     if (!article.id || !window.confirm(`“${article.title}” нийтлэлийг устгах уу?`)) return;
     const response = await fetch(`/api/admin/articles?id=${article.id}`, { method: "DELETE" });
-    if (response.ok) setItems(current => current.filter(item => item.id !== article.id));
-    else setMessage("Нийтлэлийг устгаж чадсангүй.");
+    if (response.ok) { setItems(current => current.filter(item => item.id !== article.id)); toast.success("Нийтлэл устгагдлаа."); }
+    else { setMessage("Нийтлэлийг устгаж чадсангүй."); toast.error("Нийтлэлийг устгаж чадсангүй."); }
   }
 
   return <>
@@ -66,7 +67,6 @@ export function AdminArticleManager({ initialItems }: { initialItems: Article[] 
       </div>
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Нийтлэл хадгалах"}</button></div>
     </form>}
-    {message && <div className="admin-alert success">{message}</div>}
     <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Гарчиг</th><th>Ангилал</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td>{item.image ? <AdminImageTooltip src={item.image} alt={item.title} /> : "—"}</td><td><strong>{item.title}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.category}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
   </>;
 }

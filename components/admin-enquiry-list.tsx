@@ -2,6 +2,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { CustomSelect } from "./custom-select";
+import { toast } from "sonner";
 
 const enquiryStatuses = ["Шинэ", "Холбогдсон", "Мэдээлэл дутуу", "Уулзалт товлосон", "Талбай үзсэн", "Үнийн санал бэлтгэж байгаа", "Үнийн санал илгээсэн", "Гэрээний шатанд", "Гэрээ болсон", "Цуцлагдсан", "Архивласан"];
 const PAGE_SIZE = 10;
@@ -79,6 +80,8 @@ export function AdminEnquiryList({ enquiries }: { enquiries: AdminEnquiry[] }) {
       const response = await fetch("/api/admin/enquiries", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ enquiryNumber, status: nextStatus }) });
       if (!response.ok) throw new Error("Төлөв шинэчилж чадсангүй.");
       setItems(current => current.map(item => item.enquiryNumber === enquiryNumber ? { ...item, status: nextStatus } : item));
+      toast.success("Хүсэлтийн төлөв шинэчлэгдлээ.");
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Төлөв шинэчилж чадсангүй.");
     } finally { setUpdating(null); }
   }
 

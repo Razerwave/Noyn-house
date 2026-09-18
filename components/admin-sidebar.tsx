@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, Building2, ExternalLink, FileText, FolderKanban, LayoutDashboard, Menu, Settings, X } from "lucide-react";
+import { BarChart3, Building2, ExternalLink, FileText, FolderKanban, LayoutDashboard, Menu, Settings, Star, TrendingUp, X } from "lucide-react";
 import { AdminLogoutButton } from "./admin-logout-button";
 import { Logo } from "./logo";
 
 const nav = [
   { href: "/admin", label: "Хянах самбар", Icon: LayoutDashboard },
+  { href: "/admin/analytics", label: "Аналитик", Icon: TrendingUp },
+  { href: "/admin/featured-project", label: "Онцлох видео", Icon: Star },
   { href: "/admin/enquiries", label: "Үнийн хүсэлтүүд", Icon: FileText },
   { href: "/admin/houses", label: "Хаусын загвар", Icon: Building2 },
   { href: "/admin/projects", label: "Хийсэн төслүүд", Icon: FolderKanban },

@@ -3,7 +3,6 @@ import { AdminArticleManager } from "@/components/admin-article-manager";
 import { getAdminContext } from "@/lib/admin-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AdminFeaturedProjectEditor } from "@/components/admin-featured-project-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +22,6 @@ export default async function Content() {
 
   return <div className="admin-body"><AdminShell>
     <AdminArticleManager initialItems={[]} />
-    <AdminFeaturedProjectEditor />
     <div className="service-grid">{sections.map((section, index) => <article className="service-card" key={section.title}>
       <span>{String(index + 1).padStart(2, "0")}</span><h3>{section.title}</h3><p>{section.count}</p>
       {section.href ? <Link className="text-link" href={section.href}>Удирдах →</Link> : <span className="field-help">Удахгүй</span>}

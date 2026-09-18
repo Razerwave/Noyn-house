@@ -3,17 +3,16 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Logo } from "./logo";
 
 export function AdminLoginForm({ nextPath = "/admin" }: { nextPath?: string }) {
   const router = useRouter();
-  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
-    setError("");
 
     const data = new FormData(event.currentTarget);
     const email = String(data.get("email"));
@@ -29,7 +28,7 @@ export function AdminLoginForm({ nextPath = "/admin" }: { nextPath?: string }) {
       });
       if (!response.ok) {
         const result = await response.json().catch(() => ({}));
-        setError(result.error || "Нэвтрэх боломжгүй байна.");
+        toast.error(result.error || "Нэвтрэх боломжгүй байна.");
         setBusy(false);
         return;
       }
@@ -41,7 +40,7 @@ export function AdminLoginForm({ nextPath = "/admin" }: { nextPath?: string }) {
     const supabase = createBrowserClient(url, key);
     const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
     if (loginError) {
-      setError("Имэйл эсвэл нууц үг буруу байна.");
+      toast.error("Имэйл эсвэл нууц үг буруу байна.");
       setBusy(false);
       return;
     }
@@ -49,7 +48,7 @@ export function AdminLoginForm({ nextPath = "/admin" }: { nextPath?: string }) {
     const accessResponse = await fetch("/api/admin/access", { cache: "no-store" });
     if (!accessResponse.ok) {
       const result = await accessResponse.json().catch(() => ({}));
-      setError(result.error || "Таны бүртгэлд админ эрх холбогдоогүй байна.");
+      toast.error(result.error || "Таны бүртгэлд админ эрх холбогдоогүй байна.");
       setBusy(false);
       return;
     }
@@ -64,7 +63,6 @@ export function AdminLoginForm({ nextPath = "/admin" }: { nextPath?: string }) {
     <p className="section-copy">Эрх бүхий байгууллагын бүртгэлээр нэвтэрнэ үү.</p>
     <div className="field"><label>Имэйл</label><input name="email" type="email" required placeholder="name@noyonhouse.mn" /></div>
     <div className="field"><label>Нууц үг</label><input name="password" type="password" required /></div>
-    {error && <p style={{ color: "#b51f2b", fontSize: 13 }}>{error}</p>}
     <button className="button" style={{ width: "100%" }} disabled={busy}>{busy ? "Нэвтэрч байна…" : "Нэвтрэх"}</button>
   </form>;
 }

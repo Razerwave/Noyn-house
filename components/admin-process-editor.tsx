@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import type { ProcessContent, ProcessStep } from "@/lib/process-content";
 import styles from "./admin-process-editor.module.css";
 
@@ -63,12 +64,15 @@ export function AdminProcessEditor({ initialContent }: { initialContent: Process
       const result = await response.json();
       if (!response.ok) {
         setMessage(result.error || "Агуулгыг хадгалж чадсангүй.");
+        toast.error(result.error || "Агуулгыг хадгалж чадсангүй.");
         return;
       }
       setContent(result);
       setMessage("Ажлын явцын агуулга амжилттай хадгалагдлаа.");
+      toast.success("Ажлын явцын агуулга амжилттай хадгалагдлаа.");
     } catch {
       setMessage("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
+      toast.error("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
       setBusy(false);
     }
@@ -81,7 +85,6 @@ export function AdminProcessEditor({ initialContent }: { initialContent: Process
         <button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : "Өөрчлөлт хадгалах"}</button>
       </div>
 
-      {message && <div className={message.includes("амжилттай") ? "admin-alert success" : "admin-alert error"}>{message}</div>}
 
       <section className="admin-card admin-editor">
         <div className="admin-editor-head">

@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { defaultSiteSettings, type SiteSettings } from "@/lib/site-settings";
+import { toast } from "sonner";
 
 export function AdminSettingsForm() {
   const [settings, setSettings] = useState<SiteSettings>(defaultSiteSettings);
@@ -37,12 +38,15 @@ export function AdminSettingsForm() {
       const result = await response.json();
       if (!response.ok) {
         setMessage(result.error || "Тохиргоог хадгалж чадсангүй.");
+        toast.error(result.error || "Тохиргоог хадгалж чадсангүй.");
         return;
       }
       setSettings(result);
       setMessage("Сайтын тохиргоо амжилттай хадгалагдлаа.");
+      toast.success("Сайтын тохиргоо амжилттай хадгалагдлаа.");
     } catch {
       setMessage("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
+      toast.error("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
       setBusy(false);
     }
@@ -54,7 +58,6 @@ export function AdminSettingsForm() {
       <button className="button" disabled={busy || loading}>{busy ? "Хадгалж байна…" : loading ? "Уншиж байна…" : "Хадгалах"}</button>
     </div>
 
-    {message && <div className={message.includes("амжилттай") ? "admin-alert success" : "admin-alert error"}>{message}</div>}
 
     <section className="admin-card admin-editor">
       <div className="admin-editor-head"><div><span>КОМПАНИЙН МЭДЭЭЛЭЛ</span><h2>Холбоо барих мэдээлэл</h2></div><p>Эдгээр мэдээлэл холбоо барих хуудас болон footer хэсэгт харагдана.</p></div>

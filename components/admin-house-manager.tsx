@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { AdminImageTooltip } from "./admin-image-tooltip";
 import { CustomSelect } from "./custom-select";
+import { toast } from "sonner";
 
 type House = { id?: string; name: string; slug: string; category: string; image: string; images?: string[]; area: string; floors: number; bedrooms: number; bathrooms?: number; dimensions?: string; description: string; status?: string };
 
@@ -43,12 +44,12 @@ export function AdminHouseManager({ initialItems }: { initialItems: House[] }) {
     try {
       const response = await fetch("/api/admin/houses", { method: editing?.id ? "PATCH" : "POST", body: new FormData(form) });
       const result = await response.json();
-      if (!response.ok) { setMessage(result.error || "Хадгалж чадсангүй."); return; }
+      if (!response.ok) { const message = result.error || "Хадгалж чадсангүй."; setMessage(message); toast.error(message); return; }
       setItems(current => editing ? current.map(item => item.id ? (item.id === result.id ? result : item) : (item.slug === editing.slug ? result : item)) : [result, ...current]);
-      setMessage(editing ? "Хаусын загвар амжилттай шинэчлэгдлээ." : "Шинэ загвар болон зургууд амжилттай хадгалагдлаа.");
+      const message = editing ? "Хаусын загвар амжилттай шинэчлэгдлээ." : "Шинэ загвар болон зургууд амжилттай хадгалагдлаа."; setMessage(message); toast.success(message);
       setOpen(false); form.reset(); clearPreviews(); setEditing(null); setSlug(""); setSlugTouched(false);
     } catch {
-      setMessage("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
+      setMessage("Сүлжээний алдаа гарлаа. Дахин оролдоно уу."); toast.error("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
       setBusy(false);
     }
@@ -94,9 +95,9 @@ export function AdminHouseManager({ initialItems }: { initialItems: House[] }) {
     setMessage("");
     const response = await fetch(`/api/admin/houses?id=${house.id}`, { method: "DELETE" });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) { setMessage(result.error || "Загварыг устгаж чадсангүй."); return; }
+    if (!response.ok) { const message = result.error || "Загварыг устгаж чадсангүй."; setMessage(message); toast.error(message); return; }
     setItems(current => current.filter(item => item.id !== house.id));
-    setMessage("Хаусын загвар амжилттай устгагдлаа.");
+    setMessage("Хаусын загвар амжилттай устгагдлаа."); toast.success("Хаусын загвар амжилттай устгагдлаа.");
   }
 
   return <>
@@ -131,7 +132,6 @@ export function AdminHouseManager({ initialItems }: { initialItems: House[] }) {
       </div>
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Загвар хадгалах"}</button></div>
     </form>}
-    {message && <div className={message.includes("амжилттай") ? "admin-alert success" : "admin-alert error"}>{message}</div>}
     <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Нэр</th><th>Ангилал</th><th>Талбай</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td><AdminImageTooltip src={item.image} alt={item.name} /></td><td><strong>{item.name}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.category}</td><td>{item.area}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
   </>;
 }

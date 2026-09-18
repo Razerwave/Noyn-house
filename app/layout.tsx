@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "sonner";
 import { getPublicSiteSettings } from "@/lib/public-site-settings";
 import "./globals.css";
 
@@ -14,5 +15,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="mn"><body>{children}<Analytics /></body></html>;
+  return <html lang="mn"><body>{children}<Analytics /><Toaster position="top-right" richColors closeButton /></body></html>;
 }

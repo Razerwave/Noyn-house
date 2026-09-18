@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { AdminImageTooltip } from "./admin-image-tooltip";
 import { CustomSelect } from "./custom-select";
+import { toast } from "sonner";
 
 type Project = { id?: string; title: string; slug: string; location: string; area: string; year: string; duration?: string; image?: string; images?: string[]; video?: string; overview?: string; status?: string };
 
@@ -43,13 +44,13 @@ export function AdminProjectManager({ initialItems }: { initialItems: Project[] 
     try {
       const response = await fetch("/api/admin/projects", { method: editing ? "PATCH" : "POST", body: new FormData(form) });
       const result = await response.json();
-      if (!response.ok) { setMessage(result.error || "Хадгалж чадсангүй."); return; }
+      if (!response.ok) { const message = result.error || "Хадгалж чадсангүй."; setMessage(message); toast.error(message); return; }
       setItems(current => editing ? current.map(item => item.id === result.id ? result : item) : [result, ...current]);
-      setMessage(editing ? "Төслийн мэдээлэл амжилттай шинэчлэгдлээ." : "Шинэ төсөл болон зургууд амжилттай хадгалагдлаа.");
+      const message = editing ? "Төслийн мэдээлэл амжилттай шинэчлэгдлээ." : "Шинэ төсөл болон зургууд амжилттай хадгалагдлаа."; setMessage(message); toast.success(message);
       setOpen(false); form.reset(); clearPreviews();
       setEditing(null); setSlug(""); setSlugTouched(false);
     } catch {
-      setMessage("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
+      setMessage("Сүлжээний алдаа гарлаа. Дахин оролдоно уу."); toast.error("Сүлжээний алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
       setBusy(false);
     }
@@ -96,9 +97,9 @@ export function AdminProjectManager({ initialItems }: { initialItems: Project[] 
     setMessage("");
     const response = await fetch(`/api/admin/projects?id=${project.id}`, { method: "DELETE" });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) { setMessage(result.error || "Төслийг устгаж чадсангүй."); return; }
+    if (!response.ok) { const message = result.error || "Төслийг устгаж чадсангүй."; setMessage(message); toast.error(message); return; }
     setItems(current => current.filter(item => item.id !== project.id));
-    setMessage("Төсөл амжилттай устгагдлаа.");
+    setMessage("Төсөл амжилттай устгагдлаа."); toast.success("Төсөл амжилттай устгагдлаа.");
   }
 
   return <>
@@ -136,7 +137,6 @@ export function AdminProjectManager({ initialItems }: { initialItems: Project[] 
       </div>
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Төсөл хадгалах"}</button></div>
     </form>}
-    {message && <div className={message.includes("амжилттай") ? "admin-alert success" : "admin-alert error"}>{message}</div>}
     <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Төслийн нэр</th><th>Байршил</th><th>Талбай</th><th>Он</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td>{item.image ? <AdminImageTooltip src={item.image} alt={item.title} /> : "—"}</td><td><strong>{item.title}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.location}</td><td>{item.area}</td><td>{item.year}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
   </>;
 }
