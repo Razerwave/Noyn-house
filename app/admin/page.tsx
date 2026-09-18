@@ -1,3 +1,88 @@
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin-shell";
-const rows=[["NH-2026-183204","2026.09.17","Б. Тэмүүлэн","NOMAD 96","Хан-Уул","Шинэ"],["NH-2026-182911","2026.09.17","О. Саруул","KHAAN 180","Налайх","Холбогдсон"],["NH-2026-174305","2026.09.16","Э. Мөнх","TAIGA 128","Төв аймаг","Уулзалт товлосон"]];
-export default function Admin(){return <div className="admin-body"><AdminShell><div className="admin-top"><div><h1>Хянах самбар</h1><small>2026 оны 9 сарын 17</small></div><span>Админ хэрэглэгч</span></div><div className="metric-grid"><div className="metric"><span>ШИНЭ ХҮСЭЛТ</span><strong>8</strong></div><div className="metric"><span>ХОЛБОГДООГҮЙ</span><strong>5</strong></div><div className="metric"><span>ӨНӨӨДРИЙН ДАХИН ХОЛБОЛТ</span><strong>3</strong></div><div className="metric"><span>ЭНЭ САРЫН ХҮСЭЛТ</span><strong>24</strong></div></div><div className="admin-card"><h2>Сүүлийн хүсэлтүүд</h2><table className="admin-table"><thead><tr><th>Дугаар</th><th>Огноо</th><th>Харилцагч</th><th>Загвар</th><th>Байршил</th><th>Төлөв</th></tr></thead><tbody>{rows.map(r=><tr key={r[0]}>{r.map((x,i)=><td key={x}>{i===5?<span className="status">{x}</span>:x}</td>)}</tr>)}</tbody></table></div><div className="admin-card"><h2>Өнөөдрийн ажил</h2><p className="section-copy">3 харилцагчтай дахин холбогдох · 2 үнийн санал илгээх · 1 уулзалт товлогдсон</p></div></AdminShell></div>}
+import { getAdminContext } from "@/lib/admin-auth";
+import { getDashboardData } from "@/lib/admin-dashboard";
+
+export const dynamic = "force-dynamic";
+
+function dateLabel(value: string) {
+	return value ? new Intl.DateTimeFormat("mn-MN", { dateStyle: "medium", timeZone: "Asia/Ulaanbaatar" }).format(new Date(value)) : "—";
+}
+ export default async function Admin() {
+	 const context = await getAdminContext(["Admin", "Sales", "Content Editor"]);
+	 if (!context) redirect("/admin/login");
+	 const dashboard = await getDashboardData();
+	 return (
+		 <div className="admin-body">
+			 <AdminShell role={context.roleName}>
+				 <div className="admin-top">
+					 <div>
+						 <h1>Хянах самбар</h1>
+						 <small>Өнөөдрийн бодит хүсэлт, ажлын төлөв</small>
+					 </div>
+					 <span>{context.roleName}</span>
+				 </div>
+				 <div className="metric-grid">
+					 <div className="metric">
+						 <span>НИЙТ ХҮСЭЛТ</span>
+						 <strong>{dashboard.total}</strong>
+					 </div>
+					 <div className="metric">
+						 <span>ШИНЭ ХҮСЭЛТ</span>
+						 <strong>{dashboard.newCount}</strong>
+					 </div>
+					 <div className="metric">
+						 <span>ХОЛБОГДООГҮЙ</span>
+						 <strong>{dashboard.uncontacted}</strong>
+					 </div>
+					 <div className="metric">
+						 <span>ЭНЭ САРЫН ХҮСЭЛТ</span>
+						 <strong>{dashboard.month}</strong>
+					 </div>
+				 </div>
+				 <div className="admin-card">
+					 <h2>Сүүлийн хүсэлтүүд</h2>
+					 {dashboard.recent.length ? (
+						 <table className="admin-table">
+							 <thead>
+								 <tr>
+									 <th>Дугаар</th>
+									 <th>Огноо</th>
+									 <th>Харилцагч</th>
+									 <th>Загвар</th>
+									 <th>Байршил</th>
+									 <th>Төлөв</th>
+								 </tr>
+							 </thead>
+							 <tbody>
+								 {dashboard.recent.map(row => (
+									 <tr key={row.enquiryNumber}>
+										 <td>{row.enquiryNumber}</td>
+										 <td>{dateLabel(row.createdAt)}</td>
+										 <td>{row.customerName}</td>
+										 <td>{row.model || "Сонгоогүй"}</td>
+										 <td>{row.location}</td>
+										 <td>
+											 <span className={`status ${row.status === "Шинэ" ? "draft" : ""}`}>
+												 {row.status}
+											 </span>
+										 </td>
+									 </tr>
+								 ))}
+							 </tbody>
+						 </table>
+					 ) : (
+						 <div className="admin-empty">
+							 <strong>Хүсэлт одоогоор алга</strong>
+							 <span>Public form-оор ирсэн хүсэлтүүд энд харагдана.</span>
+						 </div>
+					 )}
+				 </div>
+				 <div className="admin-card">
+					 <h2>Өнөөдрийн хүсэлт</h2>
+					 <p className="section-copy">Өнөөдөр {dashboard.today} шинэ хүсэлт бүртгэгдсэн байна.</p>
+				 </div>
+			 </AdminShell>
+		 </div>
+	 );
+ }
