@@ -8,7 +8,8 @@ export async function getAdminContext(allowedRoles: string[]) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !anonKey || !serviceKey) {
-    if (process.env.NODE_ENV !== "production") return { mode: "local" as const };
+    const cookieStore = await cookies();
+    if (process.env.NODE_ENV !== "production" && cookieStore.get("noyon_admin_session")?.value === "authenticated") return { mode: "local" as const };
     return null;
   }
 
