@@ -9,7 +9,7 @@ const articleSchema = z.object({
   title: z.string().min(2).max(160),
   slug: z.string().min(2).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   category: z.string().min(2).max(80),
-  summary: z.string().min(10).max(500),
+  summary: z.string().max(500),
   content: z.string().min(10).max(20000),
   status: z.enum(["draft", "published"]),
 });

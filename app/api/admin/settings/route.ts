@@ -8,6 +8,7 @@ import { mergeSiteSettings, type SiteSettings } from "@/lib/site-settings";
 const settingsSchema = z.object({
   companyName: z.string().trim().min(2).max(120),
   phone: z.string().trim().min(6).max(40),
+  phone2: z.string().trim().max(40),
   email: z.string().trim().email().max(160),
   businessHours: z.string().trim().min(2).max(160),
   address: z.string().trim().min(2).max(300),
@@ -37,7 +38,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Бүх талбарыг бүрэн, зөв оруулна уу.", fields: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
 
-  const settings = parsed.data;
+  const settings = mergeSiteSettings(parsed.data);
   if (context.mode === "local") {
     await writeLocalValue("site-settings.json", settings);
   } else {

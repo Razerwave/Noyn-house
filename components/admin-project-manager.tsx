@@ -4,7 +4,7 @@ import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { AdminImageTooltip } from "./admin-image-tooltip";
 import { CustomSelect } from "./custom-select";
 
-type Project = { id?: string; title: string; slug: string; location: string; area: string; year: string; duration?: string; image?: string; images?: string[]; overview?: string; status?: string };
+type Project = { id?: string; title: string; slug: string; location: string; area: string; year: string; duration?: string; image?: string; images?: string[]; video?: string; overview?: string; status?: string };
 
 const CYRILLIC_TO_LATIN: Record<string, string> = {
   а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "j", з: "z", и: "i", й: "i",
@@ -124,6 +124,12 @@ export function AdminProjectManager({ initialItems }: { initialItems: Project[] 
           <input name="galleryImages" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={onGalleryChange} />
           <small className="field-help">Нэг дор 12 хүртэл зураг сонгож болно.{editing ? " Шинэ зураг сонговол одоогийн gallery-г солино." : ""}</small>
           {galleryPreviews.length > 0 && <div className="admin-gallery-preview">{galleryPreviews.map((url, index) => <img key={url} src={url} alt={`Gallery зураг ${index + 1}`} />)}</div>}
+        </div>
+        <div className="field full">
+          <label>Төслийн видео</label>
+          <input name="projectVideo" type="file" accept="video/mp4,video/webm,video/quicktime" />
+          <small className="field-help">MP4, WebM эсвэл MOV · дээд хэмжээ 100 MB{editing ? " · солихгүй бол хоосон үлдээнэ" : ""}</small>
+          {editing?.video && <video className="admin-video-preview" src={editing.video} controls preload="metadata" />}
         </div>
         <div className="field full"><label>Төслийн тойм *</label><textarea name="overview" required minLength={10} rows={4} defaultValue={editing?.overview} /></div>
         <div className="field"><label>Төлөв</label><CustomSelect name="status" defaultValue={editing?.status ?? "draft"}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></CustomSelect></div>

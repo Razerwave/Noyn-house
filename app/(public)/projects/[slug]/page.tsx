@@ -17,6 +17,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
           <div className="eyebrow">Дууссан төсөл</div>
           <h1 className="section-title">{project.title}</h1>
           <p>{project.overview}</p>
+          {project.video && <video className="project-video" src={project.video} controls preload="metadata" />}
           <div className="stats">
             <div className="stat"><span>БАЙРШИЛ</span><strong>{project.location}</strong></div>
             <div className="stat"><span>ТАЛБАЙ</span><strong>{project.area}</strong></div>

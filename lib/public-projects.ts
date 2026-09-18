@@ -13,6 +13,7 @@ export type PublicProject = {
   duration?: string;
   image: string;
   images: string[];
+  video?: string;
   overview: string;
 };
 
@@ -35,6 +36,7 @@ export async function getPublishedProjects(limit?: number): Promise<PublicProjec
       duration: project.duration,
       image: project.image,
       images: project.images ?? [],
+      video: project.video,
       overview: project.overview,
     }));
     return typeof limit === "number" ? projects.slice(0, limit) : projects;
@@ -66,6 +68,7 @@ export async function getPublishedProjects(limit?: number): Promise<PublicProjec
       duration: row.duration ?? "",
       image: cover?.url ?? "/images/hero-house.png",
       images: gallery.length > 0 ? gallery : (cover ? [cover.url] : []),
+      video: media.find(item => item.media_type === "video")?.url,
       overview: row.overview ?? "",
     };
   });

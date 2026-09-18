@@ -7,15 +7,18 @@ import { getPublishedHouses } from "@/lib/public-houses";
 import { getPublishedProjects } from "@/lib/public-projects";
 import { getPublicProcessContent } from "@/lib/public-process";
 import { MaterialSection } from "@/components/material-section";
+import { FeaturedProjectSection } from "@/components/featured-project-section";
+import { getPublicFeaturedProject } from "@/lib/public-featured-project";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [processContent, latestArticles, featuredHouses, latestProjects] = await Promise.all([
+  const [processContent, latestArticles, featuredHouses, latestProjects, featuredProject] = await Promise.all([
     getPublicProcessContent(),
     getPublishedArticles(3),
     getPublishedHouses(3),
     getPublishedProjects(3),
+    getPublicFeaturedProject(),
   ]);
 
   return (
@@ -34,6 +37,7 @@ export default async function HomePage() {
         </div>
         <div className="hero-note">Монгол ахуйд нийцсэн.<br />Канад чанартай.</div>
       </section>
+      {featuredProject && <FeaturedProjectSection project={featuredProject} />}
       <section className="trust-strip"><div className="container trust-grid">
         <div className="trust-item"><House /><h3>Ухаалаг төлөвлөлт</h3><p>Гэр бүлийн бодит хэрэгцээнд нийцсэн орон зай.</p></div>
         <div className="trust-item"><ShieldCheck /><h3>Нэгдсэн хяналт</h3><p>Үе шат бүрт баримтжуулсан чанарын шалгалт.</p></div>

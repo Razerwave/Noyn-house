@@ -7,12 +7,18 @@ import { readLocalRecords, writeLocalRecords } from "@/lib/local-admin-store";
 
 const PROJECT_IMAGE_BUCKET = "project-images";
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
 const MAX_GALLERY_IMAGES = 12;
 const IMAGE_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "image/avif": "avif",
+};
+const VIDEO_EXTENSIONS: Record<string, string> = {
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
 };
 
 const projectSchema = z.object({
@@ -34,8 +40,25 @@ function imageValidationError(coverImage: FormDataEntryValue | null, galleryImag
   return null;
 }
 
+function videoValidationError(videoEntry: FormDataEntryValue | null) {
+  const video = videoEntry instanceof File && videoEntry.size > 0 ? videoEntry : null;
+  if (!video) return null;
+  if (!VIDEO_EXTENSIONS[video.type]) return `${video.name}: MP4, WebM эсвэл MOV видео сонгоно уу.`;
+  if (video.size > MAX_VIDEO_SIZE) return `${video.name}: видеоны хэмжээ 100 MB-с их байна.`;
+  return null;
+}
+
 async function saveLocalImage(file: File, slug: string) {
   const fileName = `${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
+  const directory = path.join(process.cwd(), "public", "uploads", "projects", slug);
+  const filePath = path.join(directory, fileName);
+  await mkdir(directory, { recursive: true });
+  await writeFile(filePath, new Uint8Array(await file.arrayBuffer()));
+  return { url: `/uploads/projects/${slug}/${fileName}`, filePath };
+}
+
+async function saveLocalVideo(file: File, slug: string) {
+  const fileName = `${crypto.randomUUID()}.${VIDEO_EXTENSIONS[file.type]}`;
   const directory = path.join(process.cwd(), "public", "uploads", "projects", slug);
   const filePath = path.join(directory, fileName);
   await mkdir(directory, { recursive: true });
@@ -62,7 +85,7 @@ export async function GET() {
   if (context.mode === "local") return NextResponse.json(await readLocalRecords("admin-projects.json"));
   const { data, error } = await context.db.from("projects").select("*, project_media(url, media_type, display_order)").is("deleted_at", null).order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json((data ?? []).map(row => {
+    return NextResponse.json((data ?? []).map(row => {
     const media = ((row.project_media ?? []) as { url: string; media_type: string; display_order: number | null }[]).sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     return { id: row.id, title: row.title, slug: row.slug, location: row.general_location, area: `${row.total_area} м²`, year: String(row.completion_year ?? ""), duration: row.duration, image: media.find(item => item.media_type === "cover")?.url || "/images/hero-house.png", images: media.filter(item => item.media_type === "gallery").map(item => item.url), overview: row.overview, status: row.status };
   }));
@@ -81,12 +104,15 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Мэдээллээ бүрэн, зөв оруулна уу.", fields: parsed.error.flatten().fieldErrors }, { status: 400 });
   const coverEntry = formData.get("coverImage");
   const galleryImages = formData.getAll("galleryImages").filter((entry): entry is File => entry instanceof File && entry.size > 0);
+  const videoEntry = formData.get("projectVideo");
   const fileError = imageValidationError(coverEntry, galleryImages);
-  if (fileError) return NextResponse.json({ error: fileError }, { status: 400 });
+  const videoError = videoValidationError(videoEntry);
+  if (fileError || videoError) return NextResponse.json({ error: fileError || videoError }, { status: 400 });
   const coverImage = coverEntry as File;
+  const video = videoEntry instanceof File && videoEntry.size > 0 ? videoEntry : null;
   const value = parsed.data;
   if (context.mode === "local") {
-    const record = { id: crypto.randomUUID(), title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: "", images: [] as string[], overview: value.overview, status: value.status };
+    const record = { id: crypto.randomUUID(), title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: "", images: [] as string[], video: "", overview: value.overview, status: value.status };
     const records = await readLocalRecords<typeof record>("admin-projects.json");
     if (records.some(item => item.slug === value.slug)) return NextResponse.json({ error: "Ийм URL slug бүртгэлтэй байна." }, { status: 409 });
     const savedPaths: string[] = [];
@@ -95,6 +121,7 @@ export async function POST(request: Request) {
       for (const image of galleryImages) {
         const saved = await saveLocalImage(image, value.slug); savedPaths.push(saved.filePath); record.images.push(saved.url);
       }
+      if (video) { const saved = await saveLocalVideo(video, value.slug); savedPaths.push(saved.filePath); record.video = saved.url; }
       records.unshift(record); await writeLocalRecords("admin-projects.json", records);
       return NextResponse.json(record, { status: 201 });
     } catch {
@@ -107,19 +134,22 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.code === "23505" ? "Ийм URL slug бүртгэлтэй байна." : error.message }, { status: 400 });
 
   const storagePaths: string[] = [];
-  const urls: string[] = [];
+  const mediaRows: { project_id: string; media_type: string; url: string; alt_text: string; display_order: number }[] = [];
   try {
-    for (const file of [coverImage, ...galleryImages]) {
-      const storagePath = `${value.slug}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
+    const upload = async (file: File, mediaType: string, displayOrder: number) => {
+      const extension = IMAGE_EXTENSIONS[file.type] ?? VIDEO_EXTENSIONS[file.type];
+      const storagePath = `${value.slug}/${crypto.randomUUID()}.${extension}`;
       const { error: uploadError } = await context.db.storage.from(PROJECT_IMAGE_BUCKET).upload(storagePath, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
       if (uploadError) throw uploadError;
       storagePaths.push(storagePath);
-      urls.push(context.db.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl);
-    }
-    const mediaRows = urls.map((url, index) => ({ project_id: data.id, media_type: index === 0 ? "cover" : "gallery", url, alt_text: value.title, display_order: index }));
+      mediaRows.push({ project_id: data.id, media_type: mediaType, url: context.db.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl, alt_text: value.title, display_order: displayOrder });
+    };
+    await upload(coverImage, "cover", 0);
+    for (const [index, file] of galleryImages.entries()) await upload(file, "gallery", index + 1);
+    if (video) await upload(video, "video", 0);
     const { error: mediaError } = await context.db.from("project_media").insert(mediaRows);
     if (mediaError) throw mediaError;
-    const record = { id: data.id, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: urls[0], images: urls.slice(1), overview: value.overview, status: value.status };
+    const record = { id: data.id, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: mediaRows[0].url, images: mediaRows.filter(media => media.media_type === "gallery").map(media => media.url), video: mediaRows.find(media => media.media_type === "video")?.url ?? "", overview: value.overview, status: value.status };
     return NextResponse.json(record, { status: 201 });
   } catch (uploadError) {
     if (storagePaths.length) await context.db.storage.from(PROJECT_IMAGE_BUCKET).remove(storagePaths);
@@ -145,12 +175,15 @@ export async function PATCH(request: Request) {
   const coverEntry = formData.get("coverImage");
   const coverImage = coverEntry instanceof File && coverEntry.size > 0 ? coverEntry : null;
   const galleryImages = formData.getAll("galleryImages").filter((entry): entry is File => entry instanceof File && entry.size > 0);
+  const videoEntry = formData.get("projectVideo");
+  const video = videoEntry instanceof File && videoEntry.size > 0 ? videoEntry : null;
   const fileError = imageValidationError(coverEntry, galleryImages, false);
-  if (fileError) return NextResponse.json({ error: fileError }, { status: 400 });
+  const videoError = videoValidationError(videoEntry);
+  if (fileError || videoError) return NextResponse.json({ error: fileError || videoError }, { status: 400 });
   const value = parsed.data;
 
   if (context.mode === "local") {
-    type LocalRecord = { id: string; title: string; slug: string; location: string; area: string; year: string; duration: string; image: string; images: string[]; overview: string; status: "draft" | "published" };
+    type LocalRecord = { id: string; title: string; slug: string; location: string; area: string; year: string; duration: string; image: string; images: string[]; video?: string; overview: string; status: "draft" | "published" };
     const records = await readLocalRecords<LocalRecord>("admin-projects.json");
     const index = records.findIndex(project => project.id === id.data);
     if (index === -1) return NextResponse.json({ error: "Төсөл олдсонгүй." }, { status: 404 });
@@ -171,6 +204,9 @@ export async function PATCH(request: Request) {
         }
         obsoleteUrls.push(...(previous.images ?? [])); next.images = urls;
       }
+      if (video) {
+        const saved = await saveLocalVideo(video, value.slug); savedPaths.push(saved.filePath); if (previous.video) obsoleteUrls.push(previous.video); next.video = saved.url;
+      }
       records[index] = next; await writeLocalRecords("admin-projects.json", records);
       await Promise.allSettled(obsoleteUrls.map(localPathFromUrl).filter((filePath): filePath is string => Boolean(filePath)).map(filePath => unlink(filePath)));
       return NextResponse.json(next);
@@ -186,15 +222,19 @@ export async function PATCH(request: Request) {
   const storagePaths: string[] = [];
   let newCoverUrl: string | null = null;
   const newGalleryUrls: string[] = [];
+  let newVideoUrl: string | null = null;
 
   try {
-    for (const file of [...(coverImage ? [coverImage] : []), ...galleryImages]) {
-      const storagePath = `${value.slug}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
+    for (const file of [...(coverImage ? [coverImage] : []), ...galleryImages, ...(video ? [video] : [])]) {
+      const extension = IMAGE_EXTENSIONS[file.type] ?? VIDEO_EXTENSIONS[file.type];
+      const storagePath = `${value.slug}/${crypto.randomUUID()}.${extension}`;
       const { error: uploadError } = await context.db.storage.from(PROJECT_IMAGE_BUCKET).upload(storagePath, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
       if (uploadError) throw uploadError;
       storagePaths.push(storagePath);
       const publicUrl = context.db.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl;
-      if (coverImage && file === coverImage) newCoverUrl = publicUrl; else newGalleryUrls.push(publicUrl);
+      if (coverImage && file === coverImage) newCoverUrl = publicUrl;
+      else if (video && file === video) newVideoUrl = publicUrl;
+      else newGalleryUrls.push(publicUrl);
     }
 
     const { error: updateError } = await context.db.from("projects").update({ slug: value.slug, title: value.title, general_location: value.location, total_area: value.totalArea, completion_year: value.year, duration: value.duration, house_model_id: value.houseModelId || null, overview: value.overview, status: value.status, updated_by: context.user.id, updated_at: new Date().toISOString() }).eq("id", id.data);
@@ -206,11 +246,12 @@ export async function PATCH(request: Request) {
     const newMediaRows = [
       ...(newCoverUrl ? [{ project_id: id.data, media_type: "cover", url: newCoverUrl, alt_text: value.title, display_order: 0 }] : []),
       ...newGalleryUrls.map((url, index) => ({ project_id: id.data, media_type: "gallery", url, alt_text: value.title, display_order: index + 1 })),
+      ...(newVideoUrl ? [{ project_id: id.data, media_type: "video", url: newVideoUrl, alt_text: value.title, display_order: 0 }] : []),
     ];
     const { data: insertedMedia, error: mediaError } = newMediaRows.length ? await context.db.from("project_media").insert(newMediaRows).select("id") : { data: [], error: null };
     if (mediaError) throw mediaError;
 
-    const replacedMedia = previousMedia.filter(media => (newCoverUrl && media.media_type === "cover") || (newGalleryUrls.length && media.media_type === "gallery"));
+    const replacedMedia = previousMedia.filter(media => (newCoverUrl && media.media_type === "cover") || (newGalleryUrls.length && media.media_type === "gallery") || (newVideoUrl && media.media_type === "video"));
     if (replacedMedia.length) {
       const { error: deleteError } = await context.db.from("project_media").delete().in("id", replacedMedia.map(media => media.id));
       if (deleteError) {
@@ -223,7 +264,7 @@ export async function PATCH(request: Request) {
 
     const coverUrl = newCoverUrl ?? previousMedia.find(media => media.media_type === "cover")?.url ?? "/images/hero-house.png";
     const galleryUrls = newGalleryUrls.length ? newGalleryUrls : previousMedia.filter(media => media.media_type === "gallery").sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)).map(media => media.url);
-    return NextResponse.json({ id: id.data, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: coverUrl, images: galleryUrls, overview: value.overview, status: value.status });
+    return NextResponse.json({ id: id.data, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: coverUrl, images: galleryUrls, video: newVideoUrl ?? previousMedia.find(media => media.media_type === "video")?.url ?? "", overview: value.overview, status: value.status });
   } catch (updateError) {
     if (storagePaths.length) await context.db.storage.from(PROJECT_IMAGE_BUCKET).remove(storagePaths);
     const message = updateError instanceof Error ? updateError.message : "Төслийг шинэчилж чадсангүй.";

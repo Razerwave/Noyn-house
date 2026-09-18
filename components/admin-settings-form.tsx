@@ -61,6 +61,7 @@ export function AdminSettingsForm() {
       <div className="field-grid">
         <div className="field"><label>Компанийн нэр *</label><input required minLength={2} maxLength={120} value={settings.companyName} onChange={event => setField("companyName", event.target.value)} /></div>
         <div className="field"><label>Үндсэн утас *</label><input required type="tel" minLength={6} maxLength={40} value={settings.phone} onChange={event => setField("phone", event.target.value)} /></div>
+        <div className="field"><label>Нэмэлт утас</label><input type="tel" maxLength={40} placeholder="+976 99112233" value={settings.phone2} onChange={event => setField("phone2", event.target.value)} /></div>
         <div className="field"><label>Имэйл *</label><input required type="email" maxLength={160} value={settings.email} onChange={event => setField("email", event.target.value)} /></div>
         <div className="field"><label>Ажлын цаг *</label><input required minLength={2} maxLength={160} value={settings.businessHours} onChange={event => setField("businessHours", event.target.value)} /></div>
         <div className="field full"><label>Хаяг *</label><input required minLength={2} maxLength={300} value={settings.address} onChange={event => setField("address", event.target.value)} /></div>
