@@ -14,6 +14,7 @@
 
 @media(max-width:680px){.hero-payment{align-items:flex-start;flex-direction:column;gap:10px;margin-top:20px}.hero-payment strong{margin-bottom:1px}}
 .login-visual .logo{display:flex;width:190px;height:72px;margin-bottom:28px}.login-visual .logo-image{width:200px;height:100px}
+.login-visual .logo{width:260px;height:96px}.login-visual .logo-image{width:280px;height:140px}.login-form .logo{width:260px;height:96px;margin:0 auto 24px}.login-form .logo-image{width:280px;height:140px}
 @media(max-width:680px){.article-cover{aspect-ratio:4/3}.article-content{margin-top:34px}.article-content p{font-size:15px}.article-content p:first-child{font-size:17px}.article-gallery{grid-template-columns:1fr}}
 
 .header-admin{color:white;font-size:11px;font-weight:700;white-space:nowrap;border:1px solid rgba(255,255,255,.5);padding:14px 16px}
