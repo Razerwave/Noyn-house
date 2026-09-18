@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">NOYON HOUSE timber-frame wall assembly</title>
+  <desc id="desc">Exploded isometric vector illustration showing timber framing, mineral wool insulation, OSB board, vapor membrane, ventilation battens and dark exterior facade.</desc>
+
+  <defs>
+    <linearGradient id="timberFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9a86d"/>
+      <stop offset="0.45" stop-color="#b9773f"/>
+      <stop offset="1" stop-color="#75401f"/>
+    </linearGradient>
+    <linearGradient id="timberSide" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8d532c"/>
+      <stop offset="1" stop-color="#4e2916"/>
+    </linearGradient>
+    <linearGradient id="insulationFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d8c26f"/>
+      <stop offset="0.5" stop-color="#b3a14c"/>
+      <stop offset="1" stop-color="#756a2e"/>
+    </linearGradient>
+    <linearGradient id="osbFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d6aa6d"/>
+      <stop offset="0.55" stop-color="#b98449"/>
+      <stop offset="1" stop-color="#81542f"/>
+    </linearGradient>
+    <linearGradient id="membraneFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#767a79" stop-opacity="0.92"/>
+      <stop offset="0.55" stop-color="#3f4443" stop-opacity="0.94"/>
+      <stop offset="1" stop-color="#202423" stop-opacity="0.97"/>
+    </linearGradient>
+    <linearGradient id="facadeFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#414645"/>
+      <stop offset="0.48" stop-color="#232827"/>
+      <stop offset="1" stop-color="#0d1110"/>
+    </linearGradient>
+    <linearGradient id="gypsumFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfaf6"/>
+      <stop offset="0.55" stop-color="#dddcd5"/>
+      <stop offset="1" stop-color="#b9bbb6"/>
+    </linearGradient>
+
+    <pattern id="woodGrain" width="70" height="44" patternUnits="userSpaceOnUse" patternTransform="skewY(-4)">
+      <path d="M-8 9 C14 2 31 15 78 6 M-4 25 C20 18 43 34 81 19 M0 39 C26 28 48 47 76 34" fill="none" stroke="#4c2513" stroke-opacity="0.32" stroke-width="2"/>
+      <path d="M8 15 C22 7 36 20 52 12 M31 31 C46 23 58 35 73 27" fill="none" stroke="#f0c58f" stroke-opacity="0.18" stroke-width="1.5"/>
+    </pattern>
+
+    <pattern id="fiberTexture" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M2 7 L14 3 M8 17 L26 8 M1 29 L17 18 M18 31 L31 21 M20 14 L30 17" stroke="#eee29a" stroke-opacity="0.35" stroke-width="2"/>
+      <path d="M4 4 L10 11 M19 2 L23 9 M4 19 L11 28 M17 17 L28 29" stroke="#74692d" stroke-opacity="0.3" stroke-width="1.5"/>
+    </pattern>
+
+    <pattern id="osbTexture" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M2 8 l16 -5 M24 4 l15 7 M8 19 l22 -7 M4 31 l16 8 M23 28 l18 -5 M28 42 l13 -8" stroke="#6b3f22" stroke-opacity="0.48" stroke-width="3" stroke-linecap="round"/>
+      <path d="M5 13 l9 3 M29 17 l11 -2 M12 27 l13 2 M1 42 l14 -6" stroke="#f1c789" stroke-opacity="0.42" stroke-width="2" stroke-linecap="round"/>
+    </pattern>
+
+    <pattern id="facadeLines" width="30" height="20" patternUnits="userSpaceOnUse">
+      <path d="M3 0 V20 M10 0 V20 M26 0 V20" stroke="#6e7472" stroke-opacity="0.34" stroke-width="1.3"/>
+      <path d="M17 0 V20" stroke="#000" stroke-opacity="0.5" stroke-width="2"/>
+    </pattern>
+
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="190%">
+      <feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="170%" height="190%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.26"/>
+    </filter>
+  </defs>
+
+  <!-- Soft contact shadow; the SVG canvas itself remains transparent. -->
+  <ellipse cx="610" cy="780" rx="485" ry="52" fill="#000" opacity="0.16" filter="url(#shadow)"/>
+
+  <!-- 01 · timber frame -->
+  <g id="timber-frame" filter="url(#softShadow)">
+    <polygon points="105,220 145,192 145,700 105,726" fill="url(#timberSide)"/>
+    <polygon points="105,220 145,192 421,192 383,220" fill="#e1b37d"/>
+    <rect x="105" y="220" width="278" height="506" rx="2" fill="none" stroke="url(#timberFront)" stroke-width="38"/>
+    <rect x="105" y="220" width="278" height="506" rx="2" fill="none" stroke="url(#woodGrain)" stroke-width="34"/>
+
+    <g>
+      <rect x="176" y="232" width="34" height="482" fill="url(#timberFront)"/>
+      <rect x="176" y="232" width="34" height="482" fill="url(#woodGrain)"/>
+      <polygon points="210,232 224,223 224,703 210,714" fill="url(#timberSide)"/>
+
+      <rect x="279" y="232" width="34" height="482" fill="url(#timberFront)"/>
+      <rect x="279" y="232" width="34" height="482" fill="url(#woodGrain)"/>
+      <polygon points="313,232 327,223 327,703 313,714" fill="url(#timberSide)"/>
+
+      <rect x="117" y="397" width="254" height="32" fill="url(#timberFront)"/>
+      <rect x="117" y="397" width="254" height="32" fill="url(#woodGrain)"/>
+      <polygon points="117,397 131,388 384,388 371,397" fill="#e1b37d"/>
+    </g>
+
+    <g fill="#392014" opacity="0.62">
+      <circle cx="191" cy="252" r="3"/><circle cx="191" cy="687" r="3"/>
+      <circle cx="296" cy="252" r="3"/><circle cx="296" cy="687" r="3"/>
+    </g>
+  </g>
+
+  <!-- 02 · mineral wool insulation -->
+  <g id="insulation" filter="url(#softShadow)">
+    <polygon points="407,253 430,237 430,687 407,703" fill="#75662d"/>
+    <polygon points="407,253 430,237 638,237 616,253" fill="#e5d583"/>
+    <rect x="407" y="253" width="209" height="450" rx="5" fill="url(#insulationFront)"/>
+    <rect x="407" y="253" width="209" height="450" rx="5" fill="url(#fiberTexture)"/>
+    <path d="M420 352 C472 333 533 371 603 343 M417 476 C476 449 536 489 605 460 M420 599 C478 576 538 612 603 584" fill="none" stroke="#f5e6a1" stroke-opacity="0.28" stroke-width="5"/>
+  </g>
+
+  <!-- 03 · OSB structural sheathing -->
+  <g id="osb" filter="url(#softShadow)">
+    <polygon points="650,231 672,216 672,681 650,696" fill="#78502f"/>
+    <polygon points="650,231 672,216 829,216 808,231" fill="#e2b475"/>
+    <rect x="650" y="231" width="158" height="465" rx="2" fill="url(#osbFront)"/>
+    <rect x="650" y="231" width="158" height="465" rx="2" fill="url(#osbTexture)" opacity="0.85"/>
+    <path d="M650 386 H808 M650 541 H808" stroke="#80532f" stroke-width="3" opacity="0.55"/>
+  </g>
+
+  <!-- 04 · vapor / weather membrane -->
+  <g id="vapor-membrane" filter="url(#softShadow)">
+    <polygon points="833,249 845,241 845,682 833,690" fill="#181c1b" opacity="0.9"/>
+    <rect x="833" y="249" width="85" height="441" rx="2" fill="url(#membraneFront)"/>
+    <path d="M845 277 H906 M845 322 H906 M845 367 H906 M845 412 H906 M845 457 H906 M845 502 H906 M845 547 H906 M845 592 H906 M845 637 H906" stroke="#aeb4b1" stroke-width="1.2" opacity="0.18"/>
+    <path d="M853 264 L899 675" stroke="#d7ddda" stroke-width="1" opacity="0.16"/>
+  </g>
+
+  <!-- 05 · ventilated timber battens -->
+  <g id="ventilation-battens" filter="url(#softShadow)">
+    <g fill="url(#timberFront)">
+      <rect x="934" y="256" width="18" height="421"/>
+      <rect x="972" y="256" width="18" height="421"/>
+      <rect x="1010" y="256" width="18" height="421"/>
+    </g>
+    <g fill="url(#woodGrain)" opacity="0.7">
+      <rect x="934" y="256" width="18" height="421"/>
+      <rect x="972" y="256" width="18" height="421"/>
+      <rect x="1010" y="256" width="18" height="421"/>
+    </g>
+  </g>
+
+  <!-- 06 · dark exterior facade -->
+  <g id="exterior-facade" filter="url(#softShadow)">
+    <polygon points="1044,219 1062,207 1143,207 1125,219" fill="#5b6260"/>
+    <polygon points="1125,219 1143,207 1143,648 1125,660" fill="#080b0b"/>
+    <rect x="1044" y="219" width="81" height="441" rx="2" fill="url(#facadeFront)"/>
+    <rect x="1044" y="219" width="81" height="441" rx="2" fill="url(#facadeLines)"/>
+    <path d="M1050 231 H1117 M1050 648 H1117" stroke="#69706e" stroke-width="1" opacity="0.45"/>
+  </g>
+
+  <!-- Small alignment markers help connect HTML labels without embedding text. -->
+  <g id="label-anchors" fill="#f05a24">
+    <circle id="anchor-frame" cx="244" cy="202" r="6"/>
+    <circle id="anchor-insulation" cx="512" cy="239" r="6"/>
+    <circle id="anchor-osb" cx="728" cy="217" r="6"/>
+    <circle id="anchor-membrane" cx="875" cy="238" r="6"/>
+    <circle id="anchor-facade" cx="1084" cy="205" r="6"/>
+  </g>
+</svg>

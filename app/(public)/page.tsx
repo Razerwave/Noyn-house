@@ -15,7 +15,7 @@ export default async function HomePage() {
       <section className="hero">
         <div className="container hero-content">
           <div className="eyebrow">Монголд зориулсан Канад технологи</div>
-          <h1>Гэр бүлийн тань<br />маргаашийг бүтээнэ</h1>
+          <h1><span>ТА ЗАХИАЛ</span><br /><span>Бид СЭТГЭЛ ХАНАМЖ ЧАНАРЫГ БҮТЭЭНЭ</span></h1>
           {/* <p>Монголын эрс тэс уур амьсгалд тохируулсан, ухаалаг төлөвлөлттэй timber-frame хаусыг зураг төслөөс түлхүүр гардуулах хүртэл.</p> */}
           <div className="hero-actions"><Link className="button" href="/houses">Хаусын загвар үзэх <ArrowRight size={17} /></Link><Link className="button ghost" href="/quote">Үнийн санал авах</Link></div>
         </div>
