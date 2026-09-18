@@ -9,9 +9,10 @@ import styles from "./material-section.module.css";
 const illustrationAlt = "Модон каркас, дулаалга, OSB хавтан, хамгаалалтын мембран, агаарын завсар ба гадна фасадын задаргаат зураг";
 type Connector = { x: number; y: number; endX: number; endY: number };
 
-export function MaterialSectionInteractive({ materials = wallMaterials, illustrationMarkup }: {
+export function MaterialSectionInteractive({ materials = wallMaterials, illustrationMarkup, illustrationSrc }: {
   materials?: readonly WallMaterial[];
-  illustrationMarkup: string;
+  illustrationMarkup?: string;
+  illustrationSrc?: string;
 }) {
   const id = useId();
   const layout = useRef<HTMLDivElement>(null);
@@ -86,7 +87,7 @@ export function MaterialSectionInteractive({ materials = wallMaterials, illustra
 
   return (
     <section className={styles.section} aria-labelledby={`${id}-title`}>
-      <div className={`container ${styles.inner}`} ref={layout}>
+      <div className={`container ${styles.inner} ${illustrationSrc ? styles.imageMode : ""}`} ref={layout}>
         <div className={styles.intro}>
           <span className={styles.eyebrow}>TECHNOLOGY</span>
           <h2 id={`${id}-title`}>ХИЙЦ БА<br />МАТЕРИАЛ</h2>
@@ -100,8 +101,9 @@ export function MaterialSectionInteractive({ materials = wallMaterials, illustra
             className={styles.drawing}
             role="img"
             aria-label={illustrationAlt}
-            dangerouslySetInnerHTML={{ __html: illustrationMarkup }}
-          />
+          >
+            {illustrationSrc ? <img src={illustrationSrc} alt={illustrationAlt} /> : <div dangerouslySetInnerHTML={{ __html: illustrationMarkup ?? "" }} />}
+          </div>
         </div>
 
         <svg className={styles.connectors} aria-hidden="true" focusable="false">

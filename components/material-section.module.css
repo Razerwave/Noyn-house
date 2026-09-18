@@ -40,6 +40,11 @@
 .diagram { min-width: 0; }
 .drawing { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; pointer-events: none; }
 .drawing svg { display: block; width: 100%; height: auto; }
+.drawing img { display: block; width: 100%; height: auto; border-radius: 2px; }
+.imageMode { grid-template-columns: minmax(0, 0.55fr) minmax(0, 2.45fr); }
+.imageMode .diagram { grid-column: 2; }
+.imageMode .materials, .imageMode .connectors { display: none; }
+.imageMode .drawing { aspect-ratio: auto; }
 .connectors { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
 .connectors path { fill: none; stroke: #9ea8a0; stroke-width: 0.7; opacity: 0.25; }
 .connectors circle { fill: #ff6b32; stroke: #111; stroke-width: 1; }
@@ -74,6 +79,8 @@
 @media (max-width: 900px) {
   .section { padding: 64px 0; }
   .inner { grid-template-columns: minmax(0, 1fr); gap: 28px; max-width: 660px; }
+  .imageMode { grid-template-columns: minmax(0, 1fr); }
+  .imageMode .diagram { grid-column: auto; }
   .intro h2 { font-size: clamp(30px, 6vw, 44px); }
   .intro p { max-width: 520px; }
   .diagram { width: 100%; }
