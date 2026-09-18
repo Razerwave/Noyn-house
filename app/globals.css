@@ -28,5 +28,5 @@ select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(
 .admin-pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:18px;color:var(--muted);font-size:11px}.table-status-select{min-width:150px}.table-status-select .custom-select-trigger{min-height:34px;padding:8px 30px 8px 10px;font-size:10px}.table-status-select .custom-select-trigger i{right:10px}.table-status-select .custom-select-menu button{padding:8px 10px;font-size:10px}
 @media(max-width:1000px){.header-admin{display:none}}
 
-.hero h1{font-size:clamp(36px,4vw,58px)}
-@media(max-width:680px){.hero h1{font-size:32px}}
+.hero h1{font-size:clamp(30px,3.3vw,48px)}
+@media(max-width:680px){.hero h1{font-size:27px}}
