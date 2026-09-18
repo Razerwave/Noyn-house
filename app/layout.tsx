@@ -4,9 +4,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: { default: "NOYON HOUSE — Канад технологийн хаус", template: "%s | NOYON HOUSE" },
+  title: { default: "Ноён хаус — Канад технологийн хаус", template: "%s | Ноён хаус" },
   description: "Монгол орны уур амьсгалд тохируулсан Канад модон каркасан хаусын зураг төсөл, барилга угсралт.",
-  openGraph: { title: "NOYON HOUSE", description: "Монгол ахуйд тохирсон, ухаалаг төлөвлөлттэй дулаан хаус.", images: ["/images/hero-house.png"] },
+  openGraph: { title: "Ноён хаус", description: "Монгол ахуйд тохирсон, ухаалаг төлөвлөлттэй дулаан хаус.", images: ["/images/hero-house.png"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
