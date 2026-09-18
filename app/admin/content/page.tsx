@@ -1,6 +1,10 @@
 import { AdminShell } from "@/components/admin-shell";
 import { AdminArticleManager } from "@/components/admin-article-manager";
+import { getAdminContext } from "@/lib/admin-auth";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 
 const sections = [
   { title: "Үйлчилгээ", count: "6 нийтэлсэн үйлчилгээ" },
@@ -12,7 +16,10 @@ const sections = [
   { title: "Багийн гишүүд", count: "Мэдээлэл оруулаагүй" },
 ];
 
-export default function Content() {
+export default async function Content() {
+  const context = await getAdminContext(["Admin", "Content Editor"]);
+  if (!context) redirect("/admin/login?next=/admin/content");
+
   return <div className="admin-body"><AdminShell>
     <AdminArticleManager initialItems={[]} />
     <div className="service-grid">{sections.map((section, index) => <article className="service-card" key={section.title}>

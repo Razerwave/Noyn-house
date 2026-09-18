@@ -230,3 +230,23 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: message }, { status: message.includes("slug") ? 409 : 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const context = await getAdminContext(["Admin", "Content Editor"]);
+  if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
+  const id = z.string().uuid().safeParse(new URL(request.url).searchParams.get("id"));
+  if (!id.success) return NextResponse.json({ error: "Төслийн ID буруу байна." }, { status: 400 });
+
+  if (context.mode === "local") {
+    type LocalRecord = { id: string };
+    const records = await readLocalRecords<LocalRecord>("admin-projects.json");
+    const next = records.filter(project => project.id !== id.data);
+    if (next.length === records.length) return NextResponse.json({ error: "Төсөл олдсонгүй." }, { status: 404 });
+    await writeLocalRecords("admin-projects.json", next);
+    return NextResponse.json({ ok: true });
+  }
+
+  const { error } = await context.db.from("projects").update({ deleted_at: new Date().toISOString(), updated_by: context.user.id, updated_at: new Date().toISOString() }).eq("id", id.data).is("deleted_at", null);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
+}

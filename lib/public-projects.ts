@@ -19,13 +19,13 @@ export type PublicProject = {
 type LocalProject = PublicProject & { status?: string };
 type ProjectMedia = { url: string; media_type: string; display_order: number | null };
 
-export async function getPublishedProjects(): Promise<PublicProject[]> {
+export async function getPublishedProjects(limit?: number): Promise<PublicProject[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
     const records = await readLocalRecords<LocalProject>("admin-projects.json");
-    return records.filter(project => project.status === "published").map(project => ({
+    const projects = records.filter(project => project.status === "published").map(project => ({
       id: project.id,
       slug: project.slug,
       title: project.title,
@@ -37,15 +37,18 @@ export async function getPublishedProjects(): Promise<PublicProject[]> {
       images: project.images ?? [],
       overview: project.overview,
     }));
+    return typeof limit === "number" ? projects.slice(0, limit) : projects;
   }
 
   const db = createClient(url, anonKey, { auth: { persistSession: false } });
-  const { data, error } = await db
+  let query = db
     .from("projects")
     .select("id, slug, title, general_location, total_area, completion_year, duration, overview, project_media(url, media_type, display_order)")
     .eq("status", "published")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (typeof limit === "number") query = query.limit(limit);
+  const { data, error } = await query;
 
   if (error) throw new Error(`Нийтэлсэн төслүүдийг уншиж чадсангүй: ${error.message}`);
 
