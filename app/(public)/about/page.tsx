@@ -10,7 +10,7 @@ export default function About() {
       <div className="split-copy">
         <div className="eyebrow">Бидний зорилго</div>
         <h2 className="section-title">Удаан хугацаанд үнэ цэнээ хадгалах орон зай</h2>
-        <p className="section-copy">NOYON HOUSE нь 2020 оноос хойш Канад модон каркасан технологийг Монгол орны уур амьсгал, газар нутгийн нөхцөлд тохируулан хаусын зураг төсөл, барилга угсралтын ажлыг гүйцэтгэж байна.</p>
+        <p className="section-copy">Ноён Хаус нь 2020 оноос хойш Канад модон каркасан технологийг Монгол орны уур амьсгал, газар нутгийн нөхцөлд тохируулан хаусын зураг төсөл, барилга угсралтын ажлыг гүйцэтгэж байна.</p>
         <Link className="button" href="/contact">Холбоо барих</Link>
       </div>
       <div className="split-image" />
