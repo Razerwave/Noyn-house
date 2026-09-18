@@ -53,16 +53,19 @@ async function saveContent(request: Request, editing: boolean) {
     await writeLocalRecords("admin-faqs.json", next); return NextResponse.json(record, { status: editing ? 200 : 201 });
   }
 
-  const table = value.entity === "service" ? "services" : "faqs";
-  const payload = value.entity === "service"
-    ? { title: value.title, description: value.description, status: value.status, display_order: value.displayOrder, updated_by: context.user.id }
-    : { question: value.question, answer: value.answer, status: value.status, display_order: value.displayOrder };
-  const query = editing ? context.db.from(table).update(payload).eq("id", value.id!) : context.db.from(table).insert(value.entity === "service" ? { ...payload, created_by: context.user.id } : payload);
+  if (value.entity === "service") {
+    const payload = { title: value.title, description: value.description, status: value.status, display_order: value.displayOrder, updated_by: context.user.id };
+    const query = editing ? context.db.from("services").update(payload).eq("id", value.id!) : context.db.from("services").insert({ ...payload, created_by: context.user.id });
+    const { data, error } = await query.select("*").single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ id: data.id, title: data.title, description: data.description ?? "", status: data.status, displayOrder: data.display_order ?? 0 }, { status: editing ? 200 : 201 });
+  }
+
+  const payload = { question: value.question, answer: value.answer, status: value.status, display_order: value.displayOrder };
+  const query = editing ? context.db.from("faqs").update(payload).eq("id", value.id!) : context.db.from("faqs").insert(payload);
   const { data, error } = await query.select("*").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json(value.entity === "service"
-    ? { id: data.id, title: data.title, description: data.description ?? "", status: data.status, displayOrder: data.display_order ?? 0 }
-    : { id: data.id, question: data.question, answer: data.answer, status: data.status, displayOrder: data.display_order ?? 0 }, { status: editing ? 200 : 201 });
+  return NextResponse.json({ id: data.id, question: data.question, answer: data.answer, status: data.status, displayOrder: data.display_order ?? 0 }, { status: editing ? 200 : 201 });
 }
 
 export async function DELETE(request: Request) {
