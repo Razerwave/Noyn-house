@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function AdminLogoutButton() {
@@ -18,5 +19,5 @@ export function AdminLogoutButton() {
     router.refresh();
   }
 
-  return <button type="button" className="admin-logout" onClick={logout}>Гарах</button>;
+  return <button type="button" className="admin-logout" onClick={logout}><LogOut size={16} aria-hidden="true" /><span>Гарах</span></button>;
 }
