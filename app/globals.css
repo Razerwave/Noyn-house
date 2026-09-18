@@ -13,5 +13,5 @@
 .admin-actions{white-space:nowrap}.admin-action.danger{margin-left:6px;color:var(--red);border-color:#e8c4c7}
 @media(max-width:1000px){.header-admin{display:none}}
 
-.hero h1{font-size:clamp(48px,5.4vw,78px)}
-@media(max-width:680px){.hero h1{font-size:42px}}
+.hero h1{font-size:clamp(36px,4vw,58px)}
+@media(max-width:680px){.hero h1{font-size:32px}}
