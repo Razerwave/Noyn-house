@@ -27,11 +27,12 @@ create table public.media_files (id uuid primary key default gen_random_uuid(), 
 create table public.website_settings (key text primary key, value jsonb not null, updated_by uuid references public.profiles, updated_at timestamptz default now());
 create table public.activity_logs (id uuid primary key default gen_random_uuid(), actor_id uuid references public.profiles, action text not null, entity_type text, entity_id uuid, before_data jsonb, after_data jsonb, ip inet, created_at timestamptz default now());
 
-alter table public.quotation_enquiries enable row level security;alter table public.house_models enable row level security;alter table public.projects enable row level security;alter table public.articles enable row level security;alter table public.process_steps enable row level security;alter table public.website_settings enable row level security;
+alter table public.quotation_enquiries enable row level security;alter table public.house_models enable row level security;alter table public.projects enable row level security;alter table public.project_media enable row level security;alter table public.articles enable row level security;alter table public.process_steps enable row level security;alter table public.website_settings enable row level security;
 create or replace function public.has_role(allowed_roles text[]) returns boolean language sql security definer set search_path=public stable as $$ select exists(select 1 from public.profiles p join public.roles r on r.id=p.role_id where p.id=auth.uid() and r.name=any(allowed_roles)); $$;
 revoke all on function public.has_role(text[]) from public;grant execute on function public.has_role(text[]) to authenticated;
 create policy "published models are public" on public.house_models for select using(status='published' and deleted_at is null);
 create policy "published projects are public" on public.projects for select using(status='published' and deleted_at is null);
+create policy "published project media are public" on public.project_media for select using(exists(select 1 from public.projects where projects.id=project_media.project_id and projects.status='published' and projects.deleted_at is null));
 create policy "published articles are public" on public.articles for select using(status='published' and deleted_at is null);
 create policy "sales manage enquiries" on public.quotation_enquiries for all to authenticated using(public.has_role(array['Admin','Sales'])) with check(public.has_role(array['Admin','Sales']));
 create policy "editors manage models" on public.house_models for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));

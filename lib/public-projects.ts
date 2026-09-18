@@ -21,9 +21,9 @@ type ProjectMedia = { url: string; media_type: string; display_order: number | n
 
 export async function getPublishedProjects(limit?: number): Promise<PublicProject[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !anonKey) {
+  if (!url || !key) {
     const records = await readLocalRecords<LocalProject>("admin-projects.json");
     const projects = records.filter(project => project.status === "published").map(project => ({
       id: project.id,
@@ -40,7 +40,7 @@ export async function getPublishedProjects(limit?: number): Promise<PublicProjec
     return typeof limit === "number" ? projects.slice(0, limit) : projects;
   }
 
-  const db = createClient(url, anonKey, { auth: { persistSession: false } });
+  const db = createClient(url, key, { auth: { persistSession: false } });
   let query = db
     .from("projects")
     .select("id, slug, title, general_location, total_area, completion_year, duration, overview, project_media(url, media_type, display_order)")
@@ -54,6 +54,8 @@ export async function getPublishedProjects(limit?: number): Promise<PublicProjec
 
   return (data ?? []).map(row => {
     const media = ((row.project_media ?? []) as ProjectMedia[]).sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    const cover = media.find(item => item.media_type === "cover") ?? media.find(item => item.media_type === "gallery");
+    const gallery = media.filter(item => item.media_type === "gallery").map(item => item.url);
     return {
       id: row.id,
       slug: row.slug,
@@ -62,8 +64,8 @@ export async function getPublishedProjects(limit?: number): Promise<PublicProjec
       area: `${row.total_area ?? 0} м²`,
       year: String(row.completion_year ?? ""),
       duration: row.duration ?? "",
-      image: media.find(item => item.media_type === "cover")?.url ?? "/images/hero-house.png",
-      images: media.filter(item => item.media_type === "gallery").map(item => item.url),
+      image: cover?.url ?? "/images/hero-house.png",
+      images: gallery.length > 0 ? gallery : (cover ? [cover.url] : []),
       overview: row.overview ?? "",
     };
   });
