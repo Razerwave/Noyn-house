@@ -86,6 +86,18 @@ function storagePathFromUrl(url: string) {
   return markerIndex === -1 ? null : decodeURIComponent(url.slice(markerIndex + marker.length));
 }
 
+async function uploadHouseImage(db: any, file: File, slug: string) {
+  await db.storage.createBucket(HOUSE_IMAGE_BUCKET, {
+    public: true,
+    fileSizeLimit: MAX_IMAGE_SIZE,
+    allowedMimeTypes: Object.keys(IMAGE_EXTENSIONS),
+  }).catch(() => undefined);
+  const storagePath = `${slug}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
+  const { error } = await db.storage.from(HOUSE_IMAGE_BUCKET).upload(storagePath, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+  if (error) throw new Error(error.message);
+  return { path: storagePath, url: db.storage.from(HOUSE_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl };
+}
+
 export async function GET() {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
@@ -143,12 +155,9 @@ export async function POST(request: Request) {
     let coverUrl = existingCoverImage ?? "";
     const galleryUrls: string[] = [];
     for (const file of [...(coverImage ? [coverImage] : []), ...galleryImages]) {
-      const storagePath = `${value.slug}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
-      const { error: uploadError } = await context.db.storage.from(HOUSE_IMAGE_BUCKET).upload(storagePath, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
-      if (uploadError) throw uploadError;
-      storagePaths.push(storagePath);
-      const publicUrl = context.db.storage.from(HOUSE_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl;
-      if (coverImage && file === coverImage) coverUrl = publicUrl; else galleryUrls.push(publicUrl);
+      const saved = await uploadHouseImage(context.db, file, value.slug);
+      storagePaths.push(saved.path);
+      if (coverImage && file === coverImage) coverUrl = saved.url; else galleryUrls.push(saved.url);
     }
     const { data, error } = await context.db.from("house_models").insert({ slug: value.slug, name: value.name, category: value.category, cover_image: coverUrl, total_area: value.totalArea, floors: value.floors, bedrooms: value.bedrooms, bathrooms: value.bathrooms, dimensions: value.dimensions, short_description: value.description, status: value.status, created_by: context.user.id, updated_by: context.user.id }).select("id").single();
     if (error) {
@@ -223,12 +232,9 @@ export async function PATCH(request: Request) {
 
   try {
     for (const file of [...(coverImage ? [coverImage] : []), ...galleryImages]) {
-      const storagePath = `${value.slug}/${crypto.randomUUID()}.${IMAGE_EXTENSIONS[file.type]}`;
-      const { error: uploadError } = await context.db.storage.from(HOUSE_IMAGE_BUCKET).upload(storagePath, new Uint8Array(await file.arrayBuffer()), { contentType: file.type, upsert: false });
-      if (uploadError) throw uploadError;
-      storagePaths.push(storagePath);
-      const publicUrl = context.db.storage.from(HOUSE_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl;
-      if (coverImage && file === coverImage) newCoverUrl = publicUrl; else newGalleryUrls.push(publicUrl);
+      const saved = await uploadHouseImage(context.db, file, value.slug);
+      storagePaths.push(saved.path);
+      if (coverImage && file === coverImage) newCoverUrl = saved.url; else newGalleryUrls.push(saved.url);
     }
 
     const { error: updateError } = await context.db.from("house_models").update({ slug: value.slug, name: value.name, category: value.category, cover_image: newCoverUrl ?? existing.cover_image, total_area: value.totalArea, floors: value.floors, bedrooms: value.bedrooms, bathrooms: value.bathrooms, dimensions: value.dimensions, short_description: value.description, status: value.status, updated_by: context.user.id, updated_at: new Date().toISOString() }).eq("id", id.data);
@@ -266,4 +272,23 @@ export async function PATCH(request: Request) {
     const message = updateError instanceof Error ? updateError.message : "Хаусын загварыг шинэчилж чадсангүй.";
     return NextResponse.json({ error: message }, { status: message.includes("slug") ? 409 : 500 });
   }
+}
+
+export async function DELETE(request: Request) {
+  const context = await getAdminContext(["Admin", "Content Editor"]);
+  if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
+  const id = z.string().uuid().safeParse(new URL(request.url).searchParams.get("id"));
+  if (!id.success) return NextResponse.json({ error: "Хаусын загварын ID буруу байна." }, { status: 400 });
+
+  if (context.mode === "local") {
+    const records = await readLocalRecords<HouseRecord>("admin-houses.json");
+    const next = records.filter(house => house.id !== id.data);
+    if (next.length === records.length) return NextResponse.json({ error: "Хаусын загвар олдсонгүй." }, { status: 404 });
+    await writeLocalRecords("admin-houses.json", next);
+    return NextResponse.json({ ok: true });
+  }
+
+  const { error } = await context.db.from("house_models").update({ deleted_at: new Date().toISOString(), updated_by: context.user.id, updated_at: new Date().toISOString() }).eq("id", id.data).is("deleted_at", null);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
 }
