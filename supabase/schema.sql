@@ -38,7 +38,7 @@ create policy "editors manage models" on public.house_models for all to authenti
 create policy "editors manage projects" on public.projects for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
 create policy "editors manage articles" on public.articles for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
 create policy "published process steps are public" on public.process_steps for select using(status='published');
-create policy "process page setting is public" on public.website_settings for select using(key='process_page');
+create policy "public website settings are readable" on public.website_settings for select using(key in ('process_page','site_settings'));
 create policy "editors manage process steps" on public.process_steps for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
 create policy "editors manage website settings" on public.website_settings for all to authenticated using(public.has_role(array['Admin','Content Editor'])) with check(public.has_role(array['Admin','Content Editor']));
 -- Public quotation inserts use the server-only service role after Zod validation and rate limiting.

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { AdminImageTooltip } from "./admin-image-tooltip";
 import { CustomSelect } from "./custom-select";
 
 type Article = { id?: string; title: string; slug: string; category: string; summary: string; content: string; image?: string; images?: string[]; status: "draft" | "published"; publishedAt?: string };
@@ -66,6 +67,6 @@ export function AdminArticleManager({ initialItems }: { initialItems: Article[] 
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Нийтлэл хадгалах"}</button></div>
     </form>}
     {message && <div className="admin-alert success">{message}</div>}
-    <div className="admin-card"><table className="admin-table"><thead><tr><th>Гарчиг</th><th>Ангилал</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td><strong>{item.title}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.category}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
+    <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Гарчиг</th><th>Ангилал</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td>{item.image ? <AdminImageTooltip src={item.image} alt={item.title} /> : "—"}</td><td><strong>{item.title}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.category}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
   </>;
 }

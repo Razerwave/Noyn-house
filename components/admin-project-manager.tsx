@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { AdminImageTooltip } from "./admin-image-tooltip";
 import { CustomSelect } from "./custom-select";
 
 type Project = { id?: string; title: string; slug: string; location: string; area: string; year: string; duration?: string; image?: string; images?: string[]; overview?: string; status?: string };
@@ -130,6 +131,6 @@ export function AdminProjectManager({ initialItems }: { initialItems: Project[] 
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={closeEditor}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : editing ? "Өөрчлөлт хадгалах" : "Төсөл хадгалах"}</button></div>
     </form>}
     {message && <div className={message.includes("амжилттай") ? "admin-alert success" : "admin-alert error"}>{message}</div>}
-    <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Төслийн нэр</th><th>Байршил</th><th>Талбай</th><th>Он</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td>{item.image ? <img src={item.image} alt="" width="70" height="45" className="admin-thumb" /> : "—"}</td><td><strong>{item.title}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.location}</td><td>{item.area}</td><td>{item.year}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
+    <div className="admin-card"><table className="admin-table"><thead><tr><th>Зураг</th><th>Төслийн нэр</th><th>Байршил</th><th>Талбай</th><th>Он</th><th>Төлөв</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id || item.slug}><td>{item.image ? <AdminImageTooltip src={item.image} alt={item.title} /> : "—"}</td><td><strong>{item.title}</strong><small className="admin-slug">/{item.slug}</small></td><td>{item.location}</td><td>{item.area}</td><td>{item.year}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions">{item.id && <><button type="button" className="admin-action" onClick={() => startEdit(item)}>Засах</button><button type="button" className="admin-action danger" onClick={() => remove(item)}>Устгах</button></>}</td></tr>)}</tbody></table></div>
   </>;
 }
