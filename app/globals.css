@@ -20,6 +20,7 @@
 .admin-logout{width:100%;border:0;background:transparent;color:inherit;text-align:left;padding:11px 12px;font:inherit;font-size:12px;cursor:pointer}.admin-logout:hover{color:var(--red)}
 .admin-side nav a,.admin-logout{display:flex;align-items:center;gap:10px}.admin-side nav a svg,.admin-logout svg{flex:0 0 auto}
 .filter-bar select,.field select{padding-right:38px}
+select{padding-right:38px}
 .admin-actions{white-space:nowrap}.admin-action.danger{margin-left:6px;color:var(--red);border-color:#e8c4c7}
 @media(max-width:1000px){.header-admin{display:none}}
 
