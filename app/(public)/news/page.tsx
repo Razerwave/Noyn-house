@@ -1,3 +1,10 @@
-import Image from "next/image";import { PageHero } from "@/components/page-hero";
-const articles=[["Газраа хаус барихад хэрхэн бэлтгэх вэ?","Газар бэлтгэл","/images/hero-house.png"],["Хаусын төлөвлөлт эхлэхээс өмнө бодох 7 зүйл","Хаус төлөвлөлт","/images/interior.png"],["Модон каркасан хийцийн үндсэн ойлголт","Барилгын материал","/images/model-nomad.png"]];
-export const metadata={title:"Мэдээ, зөвлөгөө"};export default function News(){return <><PageHero eyebrow="Мэдлэгийн сан" title="Мэдээ, зөвлөгөө" copy="Хаусын төлөвлөлт, газар бэлтгэл, материал ба ашиглалтын талаар хэрэгтэй мэдээлэл."/><section className="section soft"><div className="container cards">{articles.map(([title,cat,img])=><article className="card" key={title}><div className="card-image"><Image src={img} alt={title} fill sizes="33vw"/><span className="badge">{cat}</span></div><div className="card-body"><h3>{title}</h3><p>Мэргэжлийн багийн бэлтгэсэн практик зөвлөгөө, анхаарах зүйлс.</p><span className="text-link">Унших →</span></div></article>)}</div></section></>}
+import Image from "next/image";
+import { PageHero } from "@/components/page-hero";
+import { getPublishedArticles } from "@/lib/articles";
+
+export const metadata = { title: "Мэдээ, зөвлөгөө" };
+
+export default async function News() {
+	const articles = await getPublishedArticles();
+	return <><PageHero eyebrow="Мэдлэгийн сан" title="Мэдээ, зөвлөгөө" copy="Хаусын төлөвлөлт, газар бэлтгэл, материал ба ашиглалтын талаар хэрэгтэй мэдээлэл."/><section className="section soft"><div className="container cards">{articles.map(article => <article className="card" key={article.id ?? article.slug}><div className="card-image"><Image src={article.image} alt={article.title} fill sizes="33vw"/><span className="badge">{article.category}</span></div><div className="card-body"><h3>{article.title}</h3><p>{article.summary}</p><span className="text-link">Унших →</span></div></article>)}</div></section></>;
+}
