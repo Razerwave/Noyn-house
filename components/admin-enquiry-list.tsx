@@ -33,7 +33,17 @@ const detailLabels: Record<string, string> = {
 
 function formatDate(value: string) {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("mn-MN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ulaanbaatar",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(value));
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}.${values.month}.${values.day} ${values.hour}:${values.minute}`;
 }
 
 function csvCell(value: string) {
