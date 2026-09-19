@@ -11,6 +11,7 @@ const nav = [
   { href: "/admin", label: "Хянах самбар", Icon: LayoutDashboard },
   { href: "/admin/analytics", label: "Аналитик", Icon: TrendingUp },
   { href: "/admin/featured-project", label: "Онцлох видео", Icon: Star },
+  { href: "/admin/articles", label: "Мэдээ, нийтлэл", Icon: FileText },
   { href: "/admin/enquiries", label: "Үнийн хүсэлтүүд", Icon: FileText },
   { href: "/admin/houses", label: "Хаусын загвар", Icon: Building2 },
   { href: "/admin/projects", label: "Хийсэн төслүүд", Icon: FolderKanban },

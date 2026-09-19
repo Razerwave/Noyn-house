@@ -21,7 +21,9 @@ export async function getPublishedServices(): Promise<PublicService[]> {
   const db = createClient(url, anonKey, { auth: { persistSession: false } });
   const { data, error } = await db.from("services").select("id, title, description, display_order").eq("status", "published").order("display_order");
   if (error) throw new Error(`Үйлчилгээний мэдээллийг уншиж чадсангүй: ${error.message}`);
-  return (data ?? []).map(row => ({ id: row.id, title: row.title, description: row.description ?? "", displayOrder: row.display_order ?? 0 }));
+  return data?.length
+    ? data.map(row => ({ id: row.id, title: row.title, description: row.description ?? "", displayOrder: row.display_order ?? 0 }))
+    : fallbackServices.map(([title, description], displayOrder) => ({ title, description, displayOrder }));
 }
 
 export async function getPublishedFaqs(): Promise<PublicFaq[]> {
@@ -36,5 +38,7 @@ export async function getPublishedFaqs(): Promise<PublicFaq[]> {
   const db = createClient(url, anonKey, { auth: { persistSession: false } });
   const { data, error } = await db.from("faqs").select("id, question, answer, display_order").eq("status", "published").order("display_order");
   if (error) throw new Error(`Түгээмэл асуултыг уншиж чадсангүй: ${error.message}`);
-  return (data ?? []).map(row => ({ id: row.id, question: row.question, answer: row.answer, displayOrder: row.display_order ?? 0 }));
+  return data?.length
+    ? data.map(row => ({ id: row.id, question: row.question, answer: row.answer, displayOrder: row.display_order ?? 0 }))
+    : fallbackFaqs.map(([question, answer], displayOrder) => ({ question, answer, displayOrder }));
 }

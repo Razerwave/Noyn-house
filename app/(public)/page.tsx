@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Banknote, BedDouble, Building2, DraftingCompass, HardHat, Heart, House, Landmark, Leaf, Ruler, ShieldCheck, Trees } from "lucide-react";
-import { faqs } from "@/lib/data";
 import { getPublishedArticles } from "@/lib/articles";
 import { getPublishedHouses } from "@/lib/public-houses";
 import { getPublishedProjects } from "@/lib/public-projects";
 import { getPublicProcessContent } from "@/lib/public-process";
+import { getPublishedFaqs } from "@/lib/public-site-content";
 import { MaterialSection } from "@/components/material-section";
 import { FeaturedProjectSection } from "@/components/featured-project-section";
 import { getPublicFeaturedProject } from "@/lib/public-featured-project";
@@ -13,12 +13,13 @@ import { getPublicFeaturedProject } from "@/lib/public-featured-project";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [processContent, latestArticles, featuredHouses, latestProjects, featuredProject] = await Promise.all([
+  const [processContent, latestArticles, featuredHouses, latestProjects, featuredProject, publishedFaqs] = await Promise.all([
     getPublicProcessContent(),
     getPublishedArticles(3),
     getPublishedHouses(3),
     getPublishedProjects(3),
     getPublicFeaturedProject(),
+    getPublishedFaqs(),
   ]);
 
   return (
@@ -59,7 +60,7 @@ export default async function HomePage() {
       {latestArticles.length > 0 && <section className="section"><div className="container"><div className="section-head"><div><div className="eyebrow">Мэдлэгийн сан</div><h2 className="section-title">Мэдээ, зөвлөгөө</h2></div><Link className="text-link" href="/news">Бүх нийтлэл үзэх <ArrowRight size={16}/></Link></div><div className="cards">{latestArticles.map(article => <Link href={`/news/${article.slug}`} className="card" key={article.id ?? article.slug}><div className="card-image"><Image src={article.image} alt={article.title} fill sizes="(max-width:680px) 100vw, 33vw" /><span className="badge">{article.category}</span></div><div className="card-body"><h3>{article.title}</h3><p>{article.summary}</p><span className="text-link">Унших <ArrowRight size={15}/></span></div></Link>)}</div></div></section>}
       <section className="section"><div className="container"><div className="section-head"><div><div className="eyebrow">{processContent.homeEyebrow}</div><h2 className="section-title">{processContent.homeTitle}</h2></div><Link className="text-link" href="/process">Дэлгэрэнгүй явц <ArrowRight size={16}/></Link></div><div className="process-grid">{processContent.steps.slice(0,6).map((step,i)=><div className="process-item" key={step.id ?? `${i}-${step.title}`}><b>{String(i+1).padStart(2,'0')}</b><h3>{step.title}</h3><p>{step.description}</p></div>)}</div></div></section>
       <section className="cta-band"><div className="container cta-inner"><h2>Таны газрын нөхцөлд тохирох хаусыг хамтдаа төлөвлөе.</h2><Link className="button" href="/quote">Үнийн санал авах <ArrowRight size={17}/></Link></div></section>
-      <section className="section"><div className="container content-grid"><div><div className="eyebrow">Түгээмэл асуултууд</div><h2 className="section-title">Танд хэрэгтэй хариулт</h2></div><div className="faq-list">{faqs.map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></div></section>
+      <section className="section faq-home-section"><div className="container faq-home-grid"><div className="faq-home-intro"><div className="eyebrow">ТҮГЭЭМЭЛ АСУУЛТУУД</div><h2 className="section-title">Танд хэрэгтэй хариулт</h2><p className="section-copy">Үнэ, хугацаа, технологийн талаар хамгийн их асуудаг асуултуудын хариуг нэг дороос аваарай.</p><Link className="text-link" href="/faq">Бүх асуултыг үзэх <ArrowRight size={16}/></Link></div><div className="faq-list">{publishedFaqs.slice(0, 5).map(faq=><details key={faq.id ?? faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</div></div></section>
     </>
   );
 }

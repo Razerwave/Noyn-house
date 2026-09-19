@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { CustomSelect } from "./custom-select";
 import { toast } from "sonner";
 
@@ -8,7 +9,7 @@ type Service = { id: string; title: string; description: string; status: "draft"
 type Faq = { id: string; question: string; answer: string; status: "draft" | "published"; displayOrder: number };
 type Editor = { entity: "service"; item?: Service } | { entity: "faq"; item?: Faq };
 
-export function AdminSiteContentManager() {
+export function AdminSiteContentManager({ only }: { only?: "service" | "faq" } = {}) {
   const [services, setServices] = useState<Service[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -55,8 +56,8 @@ export function AdminSiteContentManager() {
   const editingFaq = editor?.entity === "faq" ? editor.item : undefined;
 
   return <section className="admin-content-manager">
-    {editor && <form className="admin-card admin-editor" onSubmit={submit}>
-      <div className="admin-editor-head"><div><span>{editor.item ? "КОНТЕНТ ЗАСАХ" : "ШИНЭ КОНТЕНТ"}</span><h2>{editor.entity === "service" ? "Үйлчилгээ" : "Түгээмэл асуулт"}</h2></div><button type="button" className="admin-action" onClick={() => setEditor(null)}>Хаах</button></div>
+    {editor && (!only || editor.entity === only) && <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-label={editor.entity === "service" ? "Үйлчилгээ засах" : "Түгээмэл асуулт засах"} style={{ position: "fixed", inset: 0, zIndex: 110, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "rgba(7, 15, 19, 0.58)" }}><form className="admin-card admin-editor admin-modal" onSubmit={submit} style={{ width: "min(680px, 100%)", maxHeight: "calc(100dvh - 48px)", overflow: "auto", margin: 0 }}>
+      <div className="admin-editor-head"><div><span>{editor.item ? "КОНТЕНТ ЗАСАХ" : "ШИНЭ КОНТЕНТ"}</span><h2>{editor.entity === "service" ? "Үйлчилгээ" : "Түгээмэл асуулт"}</h2></div><button type="button" className="admin-modal-close" onClick={() => setEditor(null)} aria-label="Modal хаах" title="Хаах"><X size={18} /></button></div>
       <div className="field-grid">
         {editor.entity === "service" ? <>
           <div className="field full"><label>Үйлчилгээний нэр *</label><input name="title" required defaultValue={editingService?.title} /></div>
@@ -69,13 +70,13 @@ export function AdminSiteContentManager() {
         <div className="field"><label>Төлөв</label><CustomSelect name="status" defaultValue={editingService?.status ?? editingFaq?.status ?? "published"}><option value="draft">Ноорог</option><option value="published">Нийтлэх</option></CustomSelect></div>
       </div>
       <div className="admin-form-actions"><button type="button" className="button secondary" onClick={() => setEditor(null)}>Цуцлах</button><button className="button" disabled={busy}>{busy ? "Хадгалж байна…" : "Хадгалах"}</button></div>
-    </form>}
+    </form></div>}
 
 
-    <div className="admin-top admin-content-head"><div><h1>Үйлчилгээ</h1><small>Үндсэн вебийн үйлчилгээний жагсаалт</small></div><button className="button" onClick={() => setEditor({ entity: "service" })}>+ Үйлчилгээ</button></div>
-    <div className="admin-card"><table className="admin-table"><thead><tr><th>#</th><th>Нэр</th><th>Тайлбар</th><th>Төлөв</th><th></th></tr></thead><tbody>{services.map(item => <tr key={item.id}><td>{item.displayOrder + 1}</td><td><strong>{item.title}</strong></td><td>{item.description}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions"><button className="admin-action" onClick={() => setEditor({ entity: "service", item })}>Засах</button><button className="admin-action danger" onClick={() => remove("service", item.id, item.title)}>Устгах</button></td></tr>)}</tbody></table></div>
+    {(!only || only === "service") && <><div className="admin-top admin-content-head"><div><h1>Үйлчилгээ</h1><small>Үндсэн вебийн үйлчилгээний жагсаалт</small></div><button className="button" onClick={() => setEditor({ entity: "service" })}>+ Үйлчилгээ</button></div>
+    <div className="admin-card"><table className="admin-table"><thead><tr><th>#</th><th>Нэр</th><th>Тайлбар</th><th>Төлөв</th><th></th></tr></thead><tbody>{services.map(item => <tr key={item.id}><td>{item.displayOrder + 1}</td><td><strong>{item.title}</strong></td><td>{item.description}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions"><button className="admin-action" onClick={() => setEditor({ entity: "service", item })}>Засах</button><button className="admin-action danger" onClick={() => remove("service", item.id, item.title)}>Устгах</button></td></tr>)}</tbody></table></div></>}
 
-    <div className="admin-top admin-content-head"><div><h1>Түгээмэл асуулт</h1><small>Нүүр болон FAQ хуудсанд харагдана</small></div><button className="button" onClick={() => setEditor({ entity: "faq" })}>+ Асуулт</button></div>
-    <div className="admin-card"><table className="admin-table"><thead><tr><th>#</th><th>Асуулт</th><th>Хариулт</th><th>Төлөв</th><th></th></tr></thead><tbody>{faqs.map(item => <tr key={item.id}><td>{item.displayOrder + 1}</td><td><strong>{item.question}</strong></td><td>{item.answer}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions"><button className="admin-action" onClick={() => setEditor({ entity: "faq", item })}>Засах</button><button className="admin-action danger" onClick={() => remove("faq", item.id, item.question)}>Устгах</button></td></tr>)}</tbody></table></div>
+    {(!only || only === "faq") && <><div className="admin-top admin-content-head"><div><h1>Түгээмэл асуулт</h1><small>Нүүр болон FAQ хуудсанд харагдана</small></div><button className="button" onClick={() => setEditor({ entity: "faq" })}>+ Асуулт</button></div>
+    <div className="admin-card"><table className="admin-table"><thead><tr><th>#</th><th>Асуулт</th><th>Хариулт</th><th>Төлөв</th><th></th></tr></thead><tbody>{faqs.map(item => <tr key={item.id}><td>{item.displayOrder + 1}</td><td><strong>{item.question}</strong></td><td>{item.answer}</td><td><span className={`status ${item.status === "draft" ? "draft" : ""}`}>{item.status === "draft" ? "Ноорог" : "Нийтэлсэн"}</span></td><td className="admin-actions"><button className="admin-action" onClick={() => setEditor({ entity: "faq", item })}>Засах</button><button className="admin-action danger" onClick={() => remove("faq", item.id, item.question)}>Устгах</button></td></tr>)}</tbody></table></div></>}
   </section>;
 }
