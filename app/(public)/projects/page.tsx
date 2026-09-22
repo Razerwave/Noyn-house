@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
@@ -14,7 +15,7 @@ export default async function Projects() {
         {projects.length > 0 ? <div className="cards">
           {projects.map(project => <Link className="card" href={`/projects/${project.slug}`} key={project.id ?? project.slug}>
             <div className="card-image">
-              <img src={project.image} alt={project.title} />
+              <Image src={project.image} alt={project.title} fill sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 33vw" />
               <span className="badge">Дууссан</span>
             </div>
             <div className="card-body">

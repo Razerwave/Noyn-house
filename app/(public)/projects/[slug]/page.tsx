@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublishedProject, getPublishedProjects } from "@/lib/public-projects";
@@ -13,7 +14,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
   if (!project) notFound();
 
   return <>
-    <div className="detail-hero" style={{ backgroundImage: `url(${project.image})` }} />
+    <div className="detail-hero"><Image src={project.image} alt={project.title} fill priority sizes="100vw" /></div>
     <section className="section">
       <div className="container content-grid">
         <article className="prose">
@@ -28,7 +29,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
             {project.duration && <div className="stat"><span>ХУГАЦАА</span><strong>{project.duration}</strong></div>}
           </div>
           {project.images.length > 0 && <div className="project-gallery">
-            {project.images.map((image, index) => <img src={image} alt={`${project.title} — зураг ${index + 1}`} key={image} />)}
+            {project.images.map((image, index) => <Image src={image} alt={`${project.title} — зураг ${index + 1}`} width={1200} height={860} sizes="(max-width: 680px) 100vw, 50vw" key={image} />)}
           </div>}
           <h2>Гүйцэтгэлийн тойм</h2>
           <p>{project.overview}</p>

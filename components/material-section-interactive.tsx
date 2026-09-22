@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ArrowRight, Plus } from "lucide-react";
 import { wallMaterials, type WallMaterial } from "@/lib/materials";
@@ -102,7 +103,7 @@ export function MaterialSectionInteractive({ materials = wallMaterials, illustra
             role="img"
             aria-label={illustrationAlt}
           >
-            {illustrationSrc ? <img src={illustrationSrc} alt={illustrationAlt} /> : <div dangerouslySetInnerHTML={{ __html: illustrationMarkup ?? "" }} />}
+            {illustrationSrc ? <Image src={illustrationSrc} alt={illustrationAlt} width={1824} height={1024} sizes="(max-width: 900px) 100vw, 58vw" /> : <div dangerouslySetInnerHTML={{ __html: illustrationMarkup ?? "" }} />}
           </div>
         </div>
 

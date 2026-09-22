@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -14,7 +15,7 @@ export default async function HouseDetail({ params }: { params: Promise<{ slug: 
   if (!house) notFound();
 
   return <>
-    <div className="detail-hero" style={{ backgroundImage: `linear-gradient(0deg,rgba(11,20,25,.25),transparent),url(${house.image})` }} />
+    <div className="detail-hero house-detail-hero"><Image src={house.image} alt={`${house.name} хаус`} fill priority sizes="100vw" /></div>
     <section className="section" style={{ paddingTop: 0 }}>
       <div className="container">
         <div className="detail-title">
@@ -35,7 +36,7 @@ export default async function HouseDetail({ params }: { params: Promise<{ slug: 
             <div className="eyebrow">Загварын тухай</div>
             <h2>{house.name}</h2>
             <p>{house.description}</p>
-            {house.images.length > 0 && <div className="project-gallery">{house.images.map((image, index) => <img src={image} alt={`${house.name} — зураг ${index + 1}`} key={image} />)}</div>}
+            {house.images.length > 0 && <div className="project-gallery">{house.images.map((image, index) => <Image src={image} alt={`${house.name} — зураг ${index + 1}`} width={1200} height={860} sizes="(max-width: 680px) 100vw, 50vw" key={image} />)}</div>}
             <h2>Материал ба гүйцэтгэл</h2>
             <p>Каркас, дулаалга, уур болон салхины хамгаалалт, фасад, инженерийн системийн үзүүлэлтүүдийг ажлын зураг болон баталгаажсан төсөвт тусгана.</p>
             <h2>Үнийн мэдээлэл</h2>
