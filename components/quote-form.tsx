@@ -236,9 +236,9 @@ export function QuoteForm({ models, initialModel = "" }: { models: PublicHouse[]
                 </CustomSelect>
               </div>
               <div className="field full">
-                <label>
-                  <input name="consent" type="checkbox" required /> Хувийн
-                  мэдээлэл боловсруулах нөхцөлийг зөвшөөрч байна. *
+                <label className="quote-consent">
+                  <input name="consent" type="checkbox" required />
+                  <span><a href="/privacy" target="_blank" rel="noreferrer">Нууцлалын бодлого</a>-той танилцаж, хувийн мэдээлэл боловсруулахыг зөвшөөрч байна. *</span>
                 </label>
               </div>
             </div>
