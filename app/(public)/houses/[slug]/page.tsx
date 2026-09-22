@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getPublishedHouse } from "@/lib/public-houses";
+import { getPublishedHouse, getPublishedHouses } from "@/lib/public-houses";
 
-export const dynamic = "force-dynamic";
+export async function generateStaticParams() {
+  const houses = await getPublishedHouses();
+  return houses.map(house => ({ slug: house.slug }));
+}
 
 export default async function HouseDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

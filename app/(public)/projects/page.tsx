@@ -4,8 +4,6 @@ import { PageHero } from "@/components/page-hero";
 import { getPublishedProjects } from "@/lib/public-projects";
 
 export const metadata = { title: "Хийсэн төслүүд" };
-export const dynamic = "force-dynamic";
-
 export default async function Projects() {
   const projects = await getPublishedProjects();
 

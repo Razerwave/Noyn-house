@@ -2,8 +2,6 @@ import { PageHero } from "@/components/page-hero";
 import { getPublicProcessContent } from "@/lib/public-process";
 
 export const metadata = { title: "Бид хэрхэн ажилладаг вэ?" };
-export const dynamic = "force-dynamic";
-
 export default async function Process() {
   const content = await getPublicProcessContent();
 

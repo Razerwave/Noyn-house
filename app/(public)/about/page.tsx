@@ -4,8 +4,6 @@ import { ArrowRight, ClipboardCheck, DraftingCompass, Layers3, MessageSquareText
 import { getPublishedProjects } from "@/lib/public-projects";
 
 export const metadata = { title: "Бидний тухай" };
-export const dynamic = "force-dynamic";
-
 const principles = [
   { Icon: MessageSquareText, number: "01", title: "Хэрэгцээг сонсох", copy: "Бэлэн загвар тулгах бус таны гэр бүлийн хэв маяг, газар, төсвөөс эхэлнэ." },
   { Icon: DraftingCompass, number: "02", title: "Нэгдсэн төлөвлөлт", copy: "Архитектур, хийц болон инженерийн шийдлийг нэг зураглалд уялдуулна." },

@@ -10,8 +10,6 @@ import { MaterialSection } from "@/components/material-section";
 import { FeaturedProjectSection } from "@/components/featured-project-section";
 import { getPublicFeaturedProject } from "@/lib/public-featured-project";
 
-export const dynamic = "force-dynamic";
-
 export default async function HomePage() {
   const [processContent, latestArticles, featuredHouses, latestProjects, featuredProject, publishedFaqs] = await Promise.all([
     getPublicProcessContent(),

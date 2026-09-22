@@ -1237,6 +1237,7 @@ select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(
 .quote-consent input { width: 15px; height: 15px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--red); }
 .quote-consent a { color: var(--red); text-decoration: underline; text-underline-offset: 3px; }
 .quote-consent a:hover { color: var(--red-dark); }
+.quote-form-loading { min-height: 470px; display: grid; place-items: center; background: var(--paper); color: var(--muted); font-size: 12px; }
 
 @media(max-width:1000px) {
   .legal-layout { grid-template-columns: 1fr; gap: 28px; }

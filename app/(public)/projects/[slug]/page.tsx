@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedProject } from "@/lib/public-projects";
+import { getPublishedProject, getPublishedProjects } from "@/lib/public-projects";
 
-export const dynamic = "force-dynamic";
+export async function generateStaticParams() {
+  const projects = await getPublishedProjects();
+  return projects.map(project => ({ slug: project.slug }));
+}
 
 export default async function ProjectDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

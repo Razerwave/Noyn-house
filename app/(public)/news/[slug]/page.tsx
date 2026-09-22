@@ -4,9 +4,12 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { PageHero } from "@/components/page-hero";
-import { getPublishedArticle } from "@/lib/articles";
+import { getPublishedArticle, getPublishedArticles } from "@/lib/articles";
 
-export const dynamic = "force-dynamic";
+export async function generateStaticParams() {
+  const articles = await getPublishedArticles();
+  return articles.map(article => ({ slug: article.slug }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const article = await getPublishedArticle((await params).slug);

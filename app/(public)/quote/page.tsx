@@ -1,13 +1,12 @@
+import { Suspense } from "react";
 import { PageHero } from "@/components/page-hero";
 import { QuoteForm } from "@/components/quote-form";
 import { getPublishedHouses } from "@/lib/public-houses";
 
 export const metadata = { title: "Үнийн санал авах" };
-export const dynamic = "force-dynamic";
 
-export default async function Quote({ searchParams }: { searchParams: Promise<{ model?: string }> }) {
-  const [models, params] = await Promise.all([getPublishedHouses(), searchParams]);
-  const initialModel = models.some(model => model.slug === params.model) ? params.model : "";
+export default async function Quote() {
+  const models = await getPublishedHouses();
   return (
     <>
       <PageHero
@@ -17,7 +16,9 @@ export default async function Quote({ searchParams }: { searchParams: Promise<{ 
       />
       <section className="section">
         <div className="container">
-          <QuoteForm models={models} initialModel={initialModel} />
+          <Suspense fallback={<div className="quote-form-loading">Үнийн саналын маягтыг бэлтгэж байна…</div>}>
+            <QuoteForm models={models} />
+          </Suspense>
         </div>
       </section>
     </>

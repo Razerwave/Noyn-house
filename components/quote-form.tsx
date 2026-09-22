@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import type { PublicHouse } from "@/lib/public-houses";
 import { CustomSelect } from "./custom-select";
@@ -10,7 +11,9 @@ const labels = [
   "Төсөв, хугацаа",
   "Холбоо барих",
 ];
-export function QuoteForm({ models, initialModel = "" }: { models: PublicHouse[]; initialModel?: string }) {
+export function QuoteForm({ models }: { models: PublicHouse[] }) {
+  const requestedModel = useSearchParams().get("model") ?? "";
+  const initialModel = models.some(model => model.slug === requestedModel) ? requestedModel : "";
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Record<string, string>>({ model: initialModel });
   const [busy, setBusy] = useState(false);
