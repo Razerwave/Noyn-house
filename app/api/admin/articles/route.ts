@@ -82,7 +82,7 @@ function toArticle(row: any): Article {
   const images = typeof row.content === "object" && Array.isArray(row.content?.images) ? row.content.images : (row.image ? [row.image] : []);
   return {
     id: row.id, title: row.title, slug: row.slug, category: row.category ?? row.article_categories?.name ?? "Мэдээ",
-    summary: row.summary ?? "", content, image: row.image ?? row.cover_image ?? "/images/hero-house.png", images, status: row.status, publishedAt: row.published_at,
+    summary: row.summary ?? "", content, image: row.image ?? row.cover_image ?? "/images/hero-house.webp", images, status: row.status, publishedAt: row.published_at,
   };
 }
 

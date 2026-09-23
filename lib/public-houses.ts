@@ -63,7 +63,7 @@ export async function getPublishedHouses(limit?: number): Promise<PublicHouse[]>
       name: row.name,
       slug: row.slug,
       category: row.category ?? "Хаусын загвар",
-      image: row.cover_image ?? "/images/hero-house.png",
+      image: row.cover_image ?? "/images/hero-house.webp",
       images: media.filter(item => item.media_type === "exterior").map(item => item.url),
       area: `${row.total_area ?? 0} м²`,
       floors: row.floors ?? 0,

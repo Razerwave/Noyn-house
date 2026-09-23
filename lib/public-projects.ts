@@ -66,7 +66,7 @@ export async function getPublishedProjects(limit?: number): Promise<PublicProjec
       area: `${row.total_area ?? 0} м²`,
       year: String(row.completion_year ?? ""),
       duration: row.duration ?? "",
-      image: cover?.url ?? "/images/hero-house.png",
+      image: cover?.url ?? "/images/hero-house.webp",
       images: gallery.length > 0 ? gallery : (cover ? [cover.url] : []),
       video: media.find(item => item.media_type === "video")?.url,
       overview: row.overview ?? "",

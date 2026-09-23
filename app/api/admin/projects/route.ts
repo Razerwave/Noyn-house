@@ -87,7 +87,7 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json((data ?? []).map(row => {
     const media = ((row.project_media ?? []) as { url: string; media_type: string; display_order: number | null }[]).sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-    return { id: row.id, title: row.title, slug: row.slug, location: row.general_location, area: `${row.total_area} м²`, year: String(row.completion_year ?? ""), duration: row.duration, image: media.find(item => item.media_type === "cover")?.url || "/images/hero-house.png", images: media.filter(item => item.media_type === "gallery").map(item => item.url), overview: row.overview, status: row.status };
+    return { id: row.id, title: row.title, slug: row.slug, location: row.general_location, area: `${row.total_area} м²`, year: String(row.completion_year ?? ""), duration: row.duration, image: media.find(item => item.media_type === "cover")?.url || "/images/hero-house.webp", images: media.filter(item => item.media_type === "gallery").map(item => item.url), overview: row.overview, status: row.status };
   }));
 }
 
@@ -262,7 +262,7 @@ export async function PATCH(request: Request) {
       if (obsoleteStoragePaths.length) await context.db.storage.from(PROJECT_IMAGE_BUCKET).remove(obsoleteStoragePaths);
     }
 
-    const coverUrl = newCoverUrl ?? previousMedia.find(media => media.media_type === "cover")?.url ?? "/images/hero-house.png";
+    const coverUrl = newCoverUrl ?? previousMedia.find(media => media.media_type === "cover")?.url ?? "/images/hero-house.webp";
     const galleryUrls = newGalleryUrls.length ? newGalleryUrls : previousMedia.filter(media => media.media_type === "gallery").sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)).map(media => media.url);
     return NextResponse.json({ id: id.data, title: value.title, slug: value.slug, location: value.location, area: `${value.totalArea} м²`, year: String(value.year), duration: value.duration, image: coverUrl, images: galleryUrls, video: newVideoUrl ?? previousMedia.find(media => media.media_type === "video")?.url ?? "", overview: value.overview, status: value.status });
   } catch (updateError) {

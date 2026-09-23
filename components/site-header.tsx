@@ -17,11 +17,11 @@ export function SiteHeader() {
       <div className="nav-wrap">
         <Logo header />
         <nav className={open ? "nav-open" : ""}>
-          {links.map(([href, label]) => <Link key={href} href={href} onClick={() => setOpen(false)}>{label}</Link>)}
-          <Link className="mobile-only" href="/contact">Холбоо барих</Link>
+          {links.map(([href, label]) => <Link key={href} href={href} prefetch={true} onClick={() => setOpen(false)}>{label}</Link>)}
+          <Link className="mobile-only" href="/contact" prefetch={true}>Холбоо барих</Link>
           <Link className="mobile-only" href="/admin/content">Админ панель</Link>
         </nav>
-        <Link className="header-cta" href="/quote"><Phone size={16} /> Үнийн санал авах</Link>
+        <Link className="header-cta" href="/quote" prefetch={true}><Phone size={16} /> Үнийн санал авах</Link>
         <Link className="header-admin" href="/admin/content">Админ</Link>
         <button className="menu-button" onClick={() => setOpen(!open)} aria-label="Цэс">{open ? <X /> : <Menu />}</button>
       </div>

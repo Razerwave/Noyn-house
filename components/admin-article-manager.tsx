@@ -8,8 +8,8 @@ import { CustomSelect } from "./custom-select";
 type Article = { id?: string; title: string; slug: string; category: string; summary: string; content: string; image?: string; images?: string[]; status: "draft" | "published"; publishedAt?: string };
 
 const seedArticles: Article[] = [
-  { title: "Газраа хаус барихад хэрхэн бэлтгэх вэ?", slug: "gazar-beltyylelt", category: "Газар бэлтгэл", summary: "Хаус барихаас өмнө газрын нөхцөл, дэд бүтэц болон зөвшөөрлөө хэрхэн бэлтгэх тухай.", content: "Газрын байршил, хөрсний нөхцөл, цахилгаан болон усны шийдлээ эхлээд тодорхойлоорой.", status: "published", image: "/images/hero-house.avif" },
-  { title: "Хаусын төлөвлөлт эхлэхээс өмнө бодох 7 зүйл", slug: "hausyn-tuluvlult", category: "Хаус төлөвлөлт", summary: "Төлөвлөлтөө эхлэхдээ талбай, гэрэлтүүлэг, хөдөлгөөний урсгалаа зөв шийдэх зөвлөмж.", content: "Өдөр тутмын амьдралын урсгал, хадгалалтын хэрэгцээ, цонхны чиглэлийг төлөвлөлтийн эхэнд тооцно.", status: "published", image: "/images/interior.avif" },
+  { title: "Газраа хаус барихад хэрхэн бэлтгэх вэ?", slug: "gazar-beltyylelt", category: "Газар бэлтгэл", summary: "Хаус барихаас өмнө газрын нөхцөл, дэд бүтэц болон зөвшөөрлөө хэрхэн бэлтгэх тухай.", content: "Газрын байршил, хөрсний нөхцөл, цахилгаан болон усны шийдлээ эхлээд тодорхойлоорой.", status: "published", image: "/images/hero-house.webp" },
+  { title: "Хаусын төлөвлөлт эхлэхээс өмнө бодох 7 зүйл", slug: "hausyn-tuluvlult", category: "Хаус төлөвлөлт", summary: "Төлөвлөлтөө эхлэхдээ талбай, гэрэлтүүлэг, хөдөлгөөний урсгалаа зөв шийдэх зөвлөмж.", content: "Өдөр тутмын амьдралын урсгал, хадгалалтын хэрэгцээ, цонхны чиглэлийг төлөвлөлтийн эхэнд тооцно.", status: "published", image: "/images/interior.webp" },
   { title: "Модон каркасан хийцийн үндсэн ойлголт", slug: "modon-karkasan-hiits", category: "Барилгын материал", summary: "Timber-frame технологийн давуу тал, дулаан алдагдлын шийдлийг ойлгох товч гарын авлага.", content: "Модон каркасан хийц нь зөв тооцоо, чанартай дулаалга, салхи чийгний хамгаалалттай хосолж байж үр дүнтэй.", status: "published", image: "/images/model-nomad.png" },
 ];
 

@@ -13,7 +13,7 @@ export default async function Projects() {
     <section className="section soft">
       <div className="container">
         {projects.length > 0 ? <div className="cards">
-          {projects.map(project => <Link className="card" href={`/projects/${project.slug}`} key={project.id ?? project.slug}>
+          {projects.map(project => <Link className="card" href={`/projects/${project.slug}`} prefetch={true} key={project.id ?? project.slug}>
             <div className="card-image">
               <Image src={project.image} alt={project.title} fill sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 33vw" />
               <span className="badge">Дууссан</span>
