@@ -10,5 +10,5 @@ export default async function ProcessContentAdmin() {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) redirect("/admin/login?next=/admin/content/process");
 
-  return <div className="admin-body"><AdminShell><AdminProcessEditor initialContent={defaultProcessContent} /></AdminShell></div>;
+  return <div className="admin-body"><AdminShell role={context.roleName}><AdminProcessEditor initialContent={defaultProcessContent} /></AdminShell></div>;
 }

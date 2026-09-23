@@ -1,4 +1,3 @@
-import { getAdminContext } from "@/lib/admin-auth";
 import { AdminSidebar } from "./admin-sidebar";
 
 const allLinks = ["/admin", "/admin/analytics", "/admin/featured-project", "/admin/articles", "/admin/enquiries", "/admin/houses", "/admin/projects", "/admin/content", "/admin/settings"];
@@ -8,9 +7,8 @@ const roleLinks: Record<string, string[]> = {
   "Content Editor": ["/admin", "/admin/analytics", "/admin/featured-project", "/admin/articles", "/admin/houses", "/admin/projects", "/admin/content"],
 };
 
-export async function AdminShell({ children, role }: { children: React.ReactNode; role?: string }) {
-  const context = role ? { roleName: role } : await getAdminContext(["Admin", "Sales", "Content Editor"]);
-  const allowed = roleLinks[context?.roleName ?? "Admin"] ?? roleLinks.Admin;
+export function AdminShell({ children, role }: { children: React.ReactNode; role: string }) {
+  const allowed = roleLinks[role] ?? roleLinks.Admin;
 
   return <div className="admin-shell"><AdminSidebar allowed={allowed} /><main className="admin-main">{children}</main></div>;
 }

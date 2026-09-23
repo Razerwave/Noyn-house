@@ -546,6 +546,48 @@ select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(
   overflow: hidden;
 }
 
+.admin-loading-logo,
+.admin-loading-nav span,
+.admin-loading-heading span,
+.admin-loading-heading i,
+.admin-loading-metrics span,
+.admin-loading-panel,
+.admin-loading-mobile span {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: admin-loading-shimmer 1.25s ease-in-out infinite;
+}
+
+.admin-loading-side { padding: 24px 18px !important; }
+.admin-loading-logo { width: 154px; height: 42px; border-radius: 8px; opacity: .18; }
+.admin-loading-nav { display: grid; gap: 12px; margin-top: 48px; }
+.admin-loading-nav span { display: block; width: 100%; height: 40px; border-radius: 8px; opacity: .12; }
+.admin-loading-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+.admin-loading-heading span { width: min(280px, 50%); height: 38px; border-radius: 8px; }
+.admin-loading-heading i { width: 112px; height: 38px; border-radius: 8px; }
+.admin-loading-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.admin-loading-metrics span { height: 112px; border-radius: 14px; }
+.admin-loading-panel { height: 340px; margin-top: 20px; border-radius: 18px; }
+.admin-loading-mobile { display: none; }
+
+@media (max-width: 900px) {
+  .admin-loading-mobile { position: fixed; z-index: 80; top: 0; left: 0; right: 0; display: flex; height: 72px; padding: 16px 18px; align-items: center; background: var(--admin-slate-950); }
+  .admin-loading-mobile span { width: 150px; height: 36px; border-radius: 7px; opacity: .16; }
+  .admin-loading .admin-loading-side { display: none; }
+  .admin-loading .admin-loading-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .admin-loading .admin-loading-heading i { width: 84px; }
+  .admin-loading .admin-loading-metrics { grid-template-columns: 1fr; }
+  .admin-loading .admin-loading-metrics span { height: 88px; }
+}
+
+@keyframes admin-loading-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
 .technology-admin-page {
   display: flex;
   height: 100vh;

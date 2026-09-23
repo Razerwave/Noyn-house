@@ -8,5 +8,5 @@ export const dynamic = "force-dynamic";
 export default async function HousesAdmin() {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) redirect("/admin/login?next=/admin/houses");
-  return <div className="admin-body"><AdminShell><AdminHouseManager initialItems={[]} /></AdminShell></div>;
+  return <div className="admin-body"><AdminShell role={context.roleName}><AdminHouseManager initialItems={[]} /></AdminShell></div>;
 }

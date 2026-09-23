@@ -61,5 +61,5 @@ export default async function Enquiries() {
     enquiries = (data ?? []).map(row => normalize(row as StoredEnquiry));
   }
 
-  return <div className="admin-body"><AdminShell><AdminEnquiryList enquiries={enquiries} /></AdminShell></div>;
+  return <div className="admin-body"><AdminShell role={context.roleName}><AdminEnquiryList enquiries={enquiries} /></AdminShell></div>;
 }

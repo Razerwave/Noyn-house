@@ -9,5 +9,5 @@ export default async function Settings() {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) redirect("/admin/login?next=/admin/settings");
 
-  return <div className="admin-body"><AdminShell><AdminSettingsForm /></AdminShell></div>;
+  return <div className="admin-body"><AdminShell role={context.roleName}><AdminSettingsForm /></AdminShell></div>;
 }

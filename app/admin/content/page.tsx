@@ -18,7 +18,7 @@ export default async function Content() {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) redirect("/admin/login?next=/admin/content");
 
-  return <div className="admin-body"><AdminShell>
+  return <div className="admin-body"><AdminShell role={context.roleName}>
     <div className="service-grid">{sections.map((section, index) => <article className="service-card" key={section.title}>
       <span>{String(index + 1).padStart(2, "0")}</span><h3>{section.title}</h3><p>{section.count}</p>
       {section.href ? <Link className="text-link" href={section.href}>Удирдах →</Link> : <span className="field-help">Удахгүй</span>}
