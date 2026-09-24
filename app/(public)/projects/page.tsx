@@ -9,7 +9,7 @@ export default async function Projects() {
   const projects = await getPublishedProjects();
 
   return <>
-    <PageHero eyebrow="Бидний туршлага" title="Хийсэн төслүүд" copy="Хэрэглэгчийн нууцлалыг хүндэтгэн ерөнхий байршил, төлөвлөлт, гүйцэтгэлийн шийдлээр танилцуулж байна." />
+    <PageHero eyebrow="Бидний туршлага" title="Хийсэн төслүүд" copy="Хэрэглэгчийн нууцлалыг хүндэтгэн ерөнхий байршил, төлөвлөлт, гүйцэтгэлийн шийдлээр танилцуулж байна." image={projects[0]?.image ?? "/images/model-khaan.png"} />
     <section className="section soft">
       <div className="container">
         {projects.length > 0 ? <div className="cards">

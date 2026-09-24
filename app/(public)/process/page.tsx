@@ -6,7 +6,7 @@ export default async function Process() {
   const content = await getPublicProcessContent();
 
   return <>
-    <PageHero eyebrow={content.eyebrow} title={content.title} copy={content.copy} />
+    <PageHero eyebrow={content.eyebrow} title={content.title} copy={content.copy} image="/images/hero-house.webp" />
     <section className="section"><div className="container"><div className="timeline">
       {content.steps.map((step, index) => <article className="timeline-item" key={step.id ?? `${index}-${step.title}`}>
         <div className="eyebrow">{String(index + 1).padStart(2, "0")} дүгээр үе шат</div>
