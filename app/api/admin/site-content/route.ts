@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAdminContext } from "@/lib/admin-auth";
 import { readLocalRecords, writeLocalRecords } from "@/lib/local-admin-store";
+import { revalidateSiteContentPages } from "@/lib/public-revalidation";
 
 const entitySchema = z.enum(["service", "faq"]);
 const serviceSchema = z.object({ id: z.string().uuid().optional(), entity: z.literal("service"), title: z.string().trim().min(2).max(160), description: z.string().trim().min(5).max(1500), status: z.enum(["draft", "published"]), displayOrder: z.coerce.number().int().min(0).max(999) });
@@ -30,8 +31,17 @@ export async function GET() {
   });
 }
 
-export async function POST(request: Request) { return saveContent(request, false); }
-export async function PATCH(request: Request) { return saveContent(request, true); }
+export async function POST(request: Request) {
+  const response = await saveContent(request, false);
+  if (response.ok) revalidateSiteContentPages();
+  return response;
+}
+
+export async function PATCH(request: Request) {
+  const response = await saveContent(request, true);
+  if (response.ok) revalidateSiteContentPages();
+  return response;
+}
 
 async function saveContent(request: Request, editing: boolean) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
@@ -68,7 +78,7 @@ async function saveContent(request: Request, editing: boolean) {
   return NextResponse.json({ id: data.id, question: data.question, answer: data.answer, status: data.status, displayOrder: data.display_order ?? 0 }, { status: editing ? 200 : 201 });
 }
 
-export async function DELETE(request: Request) {
+async function deleteContent(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const url = new URL(request.url);
@@ -84,4 +94,10 @@ export async function DELETE(request: Request) {
   const { error } = await context.db.from(entity.data === "service" ? "services" : "faqs").delete().eq("id", id.data);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(request: Request) {
+  const response = await deleteContent(request);
+  if (response.ok) revalidateSiteContentPages();
+  return response;
 }

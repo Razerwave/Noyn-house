@@ -4,6 +4,7 @@ import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getAdminContext } from "@/lib/admin-auth";
 import { readLocalRecords, writeLocalRecords } from "@/lib/local-admin-store";
+import { revalidateProjectPages } from "@/lib/public-revalidation";
 
 const PROJECT_IMAGE_BUCKET = "project-images";
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
@@ -91,7 +92,7 @@ export async function GET() {
   }));
 }
 
-export async function POST(request: Request) {
+async function createProject(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const formData = await request.formData().catch(() => null);
@@ -159,7 +160,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+async function updateProject(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const formData = await request.formData().catch(() => null);
@@ -272,7 +273,7 @@ export async function PATCH(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+async function deleteProject(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const id = z.string().uuid().safeParse(new URL(request.url).searchParams.get("id"));
@@ -290,4 +291,22 @@ export async function DELETE(request: Request) {
   const { error } = await context.db.from("projects").update({ deleted_at: new Date().toISOString(), updated_by: context.user.id, updated_at: new Date().toISOString() }).eq("id", id.data).is("deleted_at", null);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
+}
+
+export async function POST(request: Request) {
+  const response = await createProject(request);
+  if (response.ok) revalidateProjectPages();
+  return response;
+}
+
+export async function PATCH(request: Request) {
+  const response = await updateProject(request);
+  if (response.ok) revalidateProjectPages();
+  return response;
+}
+
+export async function DELETE(request: Request) {
+  const response = await deleteProject(request);
+  if (response.ok) revalidateProjectPages();
+  return response;
 }

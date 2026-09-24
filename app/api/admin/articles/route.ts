@@ -4,6 +4,7 @@ import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getAdminContext } from "@/lib/admin-auth";
 import { readLocalRecords, writeLocalRecords } from "@/lib/local-admin-store";
+import { revalidateArticlePages } from "@/lib/public-revalidation";
 
 const articleSchema = z.object({
   title: z.string().min(2).max(160),
@@ -104,11 +105,15 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return saveArticle(request, "create");
+  const response = await saveArticle(request, "create");
+  if (response.ok) revalidateArticlePages();
+  return response;
 }
 
 export async function PATCH(request: Request) {
-  return saveArticle(request, "update");
+  const response = await saveArticle(request, "update");
+  if (response.ok) revalidateArticlePages();
+  return response;
 }
 
 async function saveArticle(request: Request, mode: "create" | "update") {
@@ -162,7 +167,7 @@ async function saveArticle(request: Request, mode: "create" | "update") {
   return NextResponse.json(toArticle(data), { status: 201 });
 }
 
-export async function DELETE(request: Request) {
+async function deleteArticle(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const id = new URL(request.url).searchParams.get("id");
@@ -176,4 +181,10 @@ export async function DELETE(request: Request) {
   const { error } = await context.db.from("articles").update({ deleted_at: new Date().toISOString() }).eq("id", id).is("deleted_at", null);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(request: Request) {
+  const response = await deleteArticle(request);
+  if (response.ok) revalidateArticlePages();
+  return response;
 }

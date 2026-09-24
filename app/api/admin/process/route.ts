@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAdminContext } from "@/lib/admin-auth";
 import { readLocalValue, writeLocalValue } from "@/lib/local-admin-store";
 import { defaultProcessContent, mergeProcessContent, type ProcessContent } from "@/lib/process-content";
+import { revalidateProcessPages } from "@/lib/public-revalidation";
 
 const processContentSchema = z.object({
   eyebrow: z.string().trim().min(2).max(80),
@@ -52,7 +53,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+async function updateProcessContent(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
 
@@ -97,4 +98,10 @@ export async function PUT(request: Request) {
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
   return NextResponse.json({ ...pageValue, steps: steps ?? content.steps });
+}
+
+export async function PUT(request: Request) {
+  const response = await updateProcessContent(request);
+  if (response.ok) revalidateProcessPages();
+  return response;
 }

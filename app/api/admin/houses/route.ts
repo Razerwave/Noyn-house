@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAdminContext } from "@/lib/admin-auth";
 import { readLocalRecords, writeLocalRecords } from "@/lib/local-admin-store";
+import { revalidateHousePages } from "@/lib/public-revalidation";
 
 const HOUSE_IMAGE_BUCKET = "house-images";
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
@@ -111,7 +112,7 @@ export async function GET() {
   }));
 }
 
-export async function POST(request: Request) {
+async function createHouse(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const formData = await request.formData().catch(() => null);
@@ -179,7 +180,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+async function updateHouse(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const formData = await request.formData().catch(() => null);
@@ -274,7 +275,7 @@ export async function PATCH(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+async function deleteHouse(request: Request) {
   const context = await getAdminContext(["Admin", "Content Editor"]);
   if (!context) return NextResponse.json({ error: "Нэвтрэх эрх шаардлагатай." }, { status: 401 });
   const id = z.string().uuid().safeParse(new URL(request.url).searchParams.get("id"));
@@ -291,4 +292,22 @@ export async function DELETE(request: Request) {
   const { error } = await context.db.from("house_models").update({ deleted_at: new Date().toISOString(), updated_by: context.user.id, updated_at: new Date().toISOString() }).eq("id", id.data).is("deleted_at", null);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
+}
+
+export async function POST(request: Request) {
+  const response = await createHouse(request);
+  if (response.ok) revalidateHousePages();
+  return response;
+}
+
+export async function PATCH(request: Request) {
+  const response = await updateHouse(request);
+  if (response.ok) revalidateHousePages();
+  return response;
+}
+
+export async function DELETE(request: Request) {
+  const response = await deleteHouse(request);
+  if (response.ok) revalidateHousePages();
+  return response;
 }
